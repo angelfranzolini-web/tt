@@ -34,6 +34,10 @@ export interface BoardData {
   id: string;
   name: string;
   icon?: string;
+  // Locked boards keep a fixed structure (name + columns can't be renamed,
+  // added to, or deleted) — only their tickets can be edited. Used for the
+  // default reference boards; boards created afterwards stay fully editable.
+  locked?: boolean;
 }
 
 // A site is an external establishment (client premises) — a controlled,

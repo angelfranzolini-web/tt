@@ -28,11 +28,18 @@ interface RawStoredState {
   sites?: SiteData[];
 }
 
+const LOCKED_BOARD_IDS = new Set(["board-general", "board-today"]);
+
 // Older stored states used a free-text `card.site` string instead of a
 // `siteId` referencing a registered site. Convert that data on load instead
-// of discarding it, so nobody loses tickets they'd already tagged.
+// of discarding it, so nobody loses tickets they'd already tagged. Also
+// re-applies the "locked" flag on the two default boards for states saved
+// before that flag existed.
 function migrate(raw: RawStoredState): AppState {
-  if (raw.sites) return raw as AppState;
+  const boards = raw.boards.map((b) => (LOCKED_BOARD_IDS.has(b.id) ? { ...b, locked: true } : b));
+
+  if (raw.sites) return { ...raw, boards } as AppState;
+
   const sites: SiteData[] = [];
   const idByKey = new Map<string, string>();
   const cards = raw.cards.map((card) => {
@@ -47,7 +54,7 @@ function migrate(raw: RawStoredState): AppState {
     }
     return { ...rest, siteId: id };
   });
-  return { ...raw, cards, sites };
+  return { ...raw, boards, cards, sites };
 }
 
 function loadInitial(): AppState {
@@ -118,6 +125,7 @@ function reducer(state: AppState, action: Action): AppState {
       };
     }
     case "ADD_COLUMN": {
+      if (state.boards.find((b) => b.id === action.boardId)?.locked) return state;
       const siblings = state.columns.filter((c) => c.boardId === action.boardId);
       const newColumn: ColumnData = {
         id: `col-${Date.now()}`,
@@ -127,29 +135,39 @@ function reducer(state: AppState, action: Action): AppState {
       };
       return { ...state, columns: [...state.columns, newColumn] };
     }
-    case "RENAME_COLUMN":
+    case "RENAME_COLUMN": {
+      const column = state.columns.find((c) => c.id === action.columnId);
+      if (!column || state.boards.find((b) => b.id === column.boardId)?.locked) return state;
       return {
         ...state,
         columns: state.columns.map((c) => (c.id === action.columnId ? { ...c, title: action.title } : c)),
       };
-    case "DELETE_COLUMN":
+    }
+    case "DELETE_COLUMN": {
+      const column = state.columns.find((c) => c.id === action.columnId);
+      if (!column || state.boards.find((b) => b.id === column.boardId)?.locked) return state;
       return {
         ...state,
         columns: state.columns.filter((c) => c.id !== action.columnId),
         cards: state.cards.filter((c) => c.columnId !== action.columnId),
       };
-    case "RENAME_BOARD":
+    }
+    case "RENAME_BOARD": {
+      if (state.boards.find((b) => b.id === action.boardId)?.locked) return state;
       return {
         ...state,
         boards: state.boards.map((b) => (b.id === action.boardId ? { ...b, name: action.name } : b)),
       };
-    case "DELETE_BOARD":
+    }
+    case "DELETE_BOARD": {
+      if (state.boards.find((b) => b.id === action.boardId)?.locked) return state;
       return {
         ...state,
         boards: state.boards.filter((b) => b.id !== action.boardId),
         columns: state.columns.filter((c) => c.boardId !== action.boardId),
         cards: state.cards.filter((c) => c.boardId !== action.boardId),
       };
+    }
     case "ADD_SITE": {
       const newSite: SiteData = { id: `site-${Date.now()}`, name: action.name };
       return { ...state, sites: [...state.sites, newSite] };

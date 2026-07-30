@@ -111,8 +111,8 @@ const todayCards: CardData[] = [
 export function getSeedState(): AppState {
   return {
     boards: [
-      { id: GENERAL, name: "Tableau général", icon: "🗂️" },
-      { id: TODAY, name: "À faire aujourd'hui", icon: "☀️" },
+      { id: GENERAL, name: "Tableau général", icon: "🗂️", locked: true },
+      { id: TODAY, name: "À faire aujourd'hui", icon: "☀️", locked: true },
     ],
     columns: [...generalColumns, ...todayColumns],
     cards: [...generalCards, ...todayCards],

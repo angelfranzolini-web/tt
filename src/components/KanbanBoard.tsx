@@ -109,12 +109,16 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
     <>
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
       <div className="board-toolbar">
-        <button className="icon-text-btn" onClick={renameBoard}>
-          ✎ Renommer le tableau
-        </button>
-        <button className="icon-text-btn" onClick={deleteBoard}>
-          🗑 Supprimer le tableau
-        </button>
+        {!board?.locked && (
+          <>
+            <button className="icon-text-btn" onClick={renameBoard}>
+              ✎ Renommer le tableau
+            </button>
+            <button className="icon-text-btn" onClick={deleteBoard}>
+              🗑 Supprimer le tableau
+            </button>
+          </>
+        )}
         <ShareButton
           label="🔗 Partager ce tableau"
           buildLink={() => buildShareLink(buildBoardPayload(state, boardId))}
@@ -126,38 +130,41 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
             key={col.id}
             column={col}
             cards={cards.filter((c) => c.columnId === col.id)}
+            locked={!!board?.locked}
             onOpenCard={onOpenCard}
             onAddCard={(columnId, title) => dispatch({ type: "ADD_CARD", boardId, columnId, title })}
             onRenameColumn={(columnId, title) => dispatch({ type: "RENAME_COLUMN", columnId, title })}
             onDeleteColumn={(columnId) => dispatch({ type: "DELETE_COLUMN", columnId })}
           />
         ))}
-        <div className="board-column add-column">
-          {addingColumn ? (
-            <div className="add-card-form">
-              <input
-                autoFocus
-                value={newColTitle}
-                onChange={(e) => setNewColTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addColumn();
-                  if (e.key === "Escape") setAddingColumn(false);
-                }}
-                placeholder="Nom de la colonne…"
-              />
-              <div className="add-card-actions">
-                <button onClick={addColumn}>Ajouter</button>
-                <button className="ghost" onClick={() => setAddingColumn(false)}>
-                  Annuler
-                </button>
+        {!board?.locked && (
+          <div className="board-column add-column">
+            {addingColumn ? (
+              <div className="add-card-form">
+                <input
+                  autoFocus
+                  value={newColTitle}
+                  onChange={(e) => setNewColTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") addColumn();
+                    if (e.key === "Escape") setAddingColumn(false);
+                  }}
+                  placeholder="Nom de la colonne…"
+                />
+                <div className="add-card-actions">
+                  <button onClick={addColumn}>Ajouter</button>
+                  <button className="ghost" onClick={() => setAddingColumn(false)}>
+                    Annuler
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <button className="add-card-trigger" onClick={() => setAddingColumn(true)}>
-              + Nouvelle colonne
-            </button>
-          )}
-        </div>
+            ) : (
+              <button className="add-card-trigger" onClick={() => setAddingColumn(true)}>
+                + Nouvelle colonne
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </DndContext>
       {dialog && <ConfirmDialog request={dialog} onClose={() => setDialog(null)} />}

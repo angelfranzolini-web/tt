@@ -8,6 +8,7 @@ import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
 interface Props {
   column: ColumnData;
   cards: CardData[];
+  locked?: boolean;
   onOpenCard: (card: CardData) => void;
   onAddCard: (columnId: string, title: string) => void;
   onRenameColumn: (columnId: string, title: string) => void;
@@ -17,6 +18,7 @@ interface Props {
 export default function ColumnView({
   column,
   cards,
+  locked,
   onOpenCard,
   onAddCard,
   onRenameColumn,
@@ -68,12 +70,16 @@ export default function ColumnView({
         <span>{column.title}</span>
         <span className="board-column-header-actions">
           <span className="board-column-count">{sorted.length}</span>
-          <button className="column-icon-btn" title="Renommer" onClick={handleRename}>
-            ✎
-          </button>
-          <button className="column-icon-btn" title="Supprimer" onClick={handleDelete}>
-            🗑
-          </button>
+          {!locked && (
+            <>
+              <button className="column-icon-btn" title="Renommer" onClick={handleRename}>
+                ✎
+              </button>
+              <button className="column-icon-btn" title="Supprimer" onClick={handleDelete}>
+                🗑
+              </button>
+            </>
+          )}
         </span>
       </div>
       <div className="board-column-body" ref={setNodeRef}>
