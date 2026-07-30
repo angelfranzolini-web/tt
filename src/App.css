@@ -418,6 +418,7 @@
 
 .dialog-actions button.danger {
   background: #b3311a;
+  color: #fff;
 }
 
 .modal-header {
