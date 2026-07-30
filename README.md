@@ -1,4 +1,4 @@
-# Suivi de projets
+# SysView
 
 Version logicielle du tableau mural (post-it + compartiments) utilisé par
 l'équipe : étiquettes draggables entre colonnes, personnes assignées visibles
