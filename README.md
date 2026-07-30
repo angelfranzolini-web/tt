@@ -65,10 +65,12 @@ npm run dev
 ## Déploiement en production (Docker + HTTPS)
 
 Voir [`DEPLOY.md`](./DEPLOY.md) pour les instructions complètes de
-déploiement sur un serveur Debian avec Docker et Caddy (HTTPS automatique via
-Let's Encrypt). En résumé :
+déploiement sur un serveur Debian avec Docker, nginx et certbot (HTTPS
+automatique via Let's Encrypt). En résumé :
 
 ```bash
 cp .env.example .env   # puis éditez APP_PASSWORD
-docker compose up -d --build
+docker compose build
+./init-letsencrypt.sh  # une seule fois, au tout premier déploiement
+docker compose up -d
 ```
