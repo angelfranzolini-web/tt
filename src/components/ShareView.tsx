@@ -1,4 +1,4 @@
-import type { SharePayload } from "../share";
+import type { SharePayload } from "../shared/sharePayload";
 
 interface Props {
   payload: SharePayload;
@@ -23,8 +23,8 @@ export default function ShareView({ payload }: Props) {
           , tous les autres tableaux et sites restent privés.
         </p>
         <p className="share-view-generated">
-          Généré le {formatDateTime(payload.generatedAt)}. Ce lien ne périme pas mais reste figé à cet instant :
-          demandez un lien à jour si besoin.
+          🟢 En direct — mis à jour automatiquement (dernière donnée reçue à {formatDateTime(payload.generatedAt)}).
+          Ce lien ne périme pas.
         </p>
       </header>
 

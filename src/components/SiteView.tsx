@@ -4,7 +4,7 @@ import { useStore } from "../store";
 import { boardName, columnTitle, formatDate, formatDateTime } from "../utils";
 import ShareButton from "./ShareButton";
 import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
-import { buildShareLink, buildSitePayload } from "../share";
+import { buildShareLink } from "../share";
 
 interface Props {
   onOpenCard: (card: CardData) => void;
@@ -190,7 +190,7 @@ export default function SiteView({ onOpenCard }: Props) {
                 >
                   🗑
                 </button>
-                <ShareButton buildLink={() => buildShareLink(buildSitePayload(state, site.id))} />
+                <ShareButton buildLink={() => buildShareLink(site.shareId!)} />
               </div>
             </div>
             {cards.length > 0 && (

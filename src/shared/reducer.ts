@@ -15,7 +15,9 @@ export type Action =
   | { type: "DELETE_COLUMN"; columnId: string }
   | { type: "ADD_SITE"; name: string }
   | { type: "RENAME_SITE"; siteId: string; name: string }
-  | { type: "DELETE_SITE"; siteId: string };
+  | { type: "DELETE_SITE"; siteId: string }
+  | { type: "ENSURE_SITE_SHARE"; siteId: string; shareId: string }
+  | { type: "ENSURE_BOARD_SHARE"; boardId: string; shareId: string };
 
 export interface RawStoredState {
   boards: BoardData[];
@@ -169,6 +171,22 @@ export function reducer(state: AppState, action: Action): AppState {
         sites: state.sites.filter((s) => s.id !== action.siteId),
         cards: state.cards.map((c) => (c.siteId === action.siteId ? { ...c, siteId: undefined } : c)),
       };
+    case "ENSURE_SITE_SHARE": {
+      const site = state.sites.find((s) => s.id === action.siteId);
+      if (!site || site.shareId) return state; // already has one — first write wins
+      return {
+        ...state,
+        sites: state.sites.map((s) => (s.id === action.siteId ? { ...s, shareId: action.shareId } : s)),
+      };
+    }
+    case "ENSURE_BOARD_SHARE": {
+      const board = state.boards.find((b) => b.id === action.boardId);
+      if (!board || board.shareId) return state;
+      return {
+        ...state,
+        boards: state.boards.map((b) => (b.id === action.boardId ? { ...b, shareId: action.shareId } : b)),
+      };
+    }
     default:
       return state;
   }

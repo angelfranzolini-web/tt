@@ -5,8 +5,8 @@ import KanbanBoard from "./components/KanbanBoard";
 import CardModal from "./components/CardModal";
 import SiteView from "./components/SiteView";
 import PersonView from "./components/PersonView";
-import ShareView from "./components/ShareView";
-import { decodeSharePayloadFromHash, type SharePayload } from "./share";
+import LiveShareView from "./components/LiveShareView";
+import { shareIdFromHash } from "./share";
 import { COLOR_LEGEND, type CardData } from "./types";
 import "./App.css";
 
@@ -27,6 +27,22 @@ function AppInner({ logout }: { logout: () => void }) {
   const [newBoardColumns, setNewBoardColumns] = useState("À faire, En cours, Fait");
 
   const openCard = state.cards.find((c) => c.id === openCardId) ?? null;
+
+  // Proactively assigns a permanent shareId to any site/board that doesn't
+  // have one yet, so the "Partager" button always has a stable link ready —
+  // no need to wait for a click before the id exists.
+  useEffect(() => {
+    for (const site of state.sites) {
+      if (!site.shareId) {
+        dispatch({ type: "ENSURE_SITE_SHARE", siteId: site.id, shareId: crypto.randomUUID().replace(/-/g, "") });
+      }
+    }
+    for (const board of state.boards) {
+      if (!board.shareId) {
+        dispatch({ type: "ENSURE_BOARD_SHARE", boardId: board.id, shareId: crypto.randomUUID().replace(/-/g, "") });
+      }
+    }
+  }, [state.sites, state.boards, dispatch]);
 
   function submitNewBoard() {
     const name = newBoardName.trim();
@@ -135,30 +151,25 @@ function AppInner({ logout }: { logout: () => void }) {
   );
 }
 
-function useSharePayload(): SharePayload | null | undefined {
-  const [payload, setPayload] = useState<SharePayload | null | undefined>(() =>
-    decodeSharePayloadFromHash(window.location.hash)
-  );
+function useShareId(): string | null {
+  const [shareId, setShareId] = useState<string | null>(() => shareIdFromHash(window.location.hash));
 
   useEffect(() => {
     function onHashChange() {
-      setPayload(decodeSharePayloadFromHash(window.location.hash));
+      setShareId(shareIdFromHash(window.location.hash));
     }
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  return payload;
+  return shareId;
 }
 
 export default function App() {
-  const sharePayload = useSharePayload();
+  const shareId = useShareId();
 
-  if (window.location.hash.startsWith("#share=")) {
-    if (!sharePayload) {
-      return <div className="share-error">Lien de partage invalide ou corrompu.</div>;
-    }
-    return <ShareView payload={sharePayload} />;
+  if (shareId) {
+    return <LiveShareView shareId={shareId} />;
   }
 
   return (

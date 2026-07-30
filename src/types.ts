@@ -38,6 +38,9 @@ export interface BoardData {
   // added to, or deleted) — only their tickets can be edited. Used for the
   // default reference boards; boards created afterwards stay fully editable.
   locked?: boolean;
+  // Stable, unguessable id used by the live share link (see shared/reducer's
+  // ENSURE_BOARD_SHARE) — assigned once and kept forever once set.
+  shareId?: string;
 }
 
 // A site is an external establishment (client premises) — a controlled,
@@ -46,6 +49,9 @@ export interface BoardData {
 export interface SiteData {
   id: string;
   name: string;
+  // Stable, unguessable id used by the live share link (see shared/reducer's
+  // ENSURE_SITE_SHARE) — assigned once and kept forever once set.
+  shareId?: string;
 }
 
 export interface AppState {

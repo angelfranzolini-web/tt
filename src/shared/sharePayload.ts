@@ -1,0 +1,57 @@
+import type { AppState, CardData } from "../types";
+import { boardName, columnTitle, siteById } from "../utils";
+
+export interface SharedCard {
+  title: string;
+  color: CardData["color"];
+  assignees: string[];
+  note?: string;
+  dueDate?: string;
+  priority?: CardData["priority"];
+  description?: string;
+  statusLabel: string;
+  log: { author: string; date: string; text: string }[];
+}
+
+export interface SharePayload {
+  kind: "site" | "board";
+  name: string;
+  generatedAt: string;
+  cards: SharedCard[];
+}
+
+function toShared(state: AppState, card: CardData): SharedCard {
+  return {
+    title: card.title,
+    color: card.color,
+    assignees: card.assignees,
+    note: card.note,
+    dueDate: card.dueDate,
+    priority: card.priority,
+    description: card.description,
+    statusLabel: `${boardName(state, card.boardId)} · ${columnTitle(state, card.columnId)}`,
+    log: card.log.map((l) => ({ author: l.author, date: l.date, text: l.text })),
+  };
+}
+
+export function buildSitePayload(state: AppState, siteId: string): SharePayload {
+  const site = siteById(state, siteId);
+  const cards = state.cards.filter((c) => c.siteId === siteId);
+  return {
+    kind: "site",
+    name: site?.name ?? "Site",
+    generatedAt: new Date().toISOString(),
+    cards: cards.map((c) => toShared(state, c)),
+  };
+}
+
+export function buildBoardPayload(state: AppState, boardId: string): SharePayload {
+  const name = boardName(state, boardId);
+  const cards = state.cards.filter((c) => c.boardId === boardId);
+  return {
+    kind: "board",
+    name,
+    generatedAt: new Date().toISOString(),
+    cards: cards.map((c) => toShared(state, c)),
+  };
+}

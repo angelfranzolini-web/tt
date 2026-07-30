@@ -12,7 +12,7 @@ import { useStore } from "../store";
 import ColumnView from "./ColumnView";
 import ShareButton from "./ShareButton";
 import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
-import { buildBoardPayload, buildShareLink } from "../share";
+import { buildShareLink } from "../share";
 
 interface Props {
   boardId: string;
@@ -121,7 +121,7 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
         )}
         <ShareButton
           label="🔗 Partager ce tableau"
-          buildLink={() => buildShareLink(buildBoardPayload(state, boardId))}
+          buildLink={() => buildShareLink(board!.shareId!)}
         />
       </div>
       <div className="board-grid">
