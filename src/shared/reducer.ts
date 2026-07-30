@@ -28,6 +28,12 @@ export interface RawStoredState {
 
 const LOCKED_BOARD_IDS = new Set(["board-general", "board-today"]);
 
+// The "Fait" column of the "À faire aujourd'hui" board isn't a real
+// destination — dropping a ticket there marks it done and clears it from
+// the board right away, so the board stays a clean daily list instead of
+// piling up finished tasks forever.
+export const AUTO_COMPLETE_COLUMN_ID = "col-today-fait";
+
 // Older stored states used a free-text `card.site` string instead of a
 // `siteId` referencing a registered site. Convert that data on load instead
 // of discarding it, so nobody loses tickets they'd already tagged. Also
@@ -60,6 +66,9 @@ export function reducer(state: AppState, action: Action): AppState {
     case "MOVE_CARD": {
       const moving = state.cards.find((c) => c.id === action.cardId);
       if (!moving) return state;
+      if (action.toColumnId === AUTO_COMPLETE_COLUMN_ID) {
+        return { ...state, cards: state.cards.filter((c) => c.id !== action.cardId) };
+      }
       const withoutMoving = state.cards.filter((c) => c.id !== action.cardId);
       const destSiblings = withoutMoving
         .filter((c) => c.columnId === action.toColumnId)
@@ -71,6 +80,9 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, cards: [...otherCards, ...reordered] };
     }
     case "UPDATE_CARD":
+      if (action.patch.columnId === AUTO_COMPLETE_COLUMN_ID) {
+        return { ...state, cards: state.cards.filter((c) => c.id !== action.cardId) };
+      }
       return {
         ...state,
         cards: state.cards.map((c) => (c.id === action.cardId ? { ...c, ...action.patch } : c)),

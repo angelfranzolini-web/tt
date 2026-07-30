@@ -34,6 +34,7 @@ function validCardPatch(v: unknown): boolean {
   const allowed = new Set([
     "title",
     "color",
+    "columnId",
     "assignees",
     "siteId",
     "note",
@@ -44,6 +45,7 @@ function validCardPatch(v: unknown): boolean {
   for (const key of Object.keys(v)) {
     if (!allowed.has(key)) return false;
   }
+  if (v.columnId !== undefined && !isStr(v.columnId)) return false;
   if (v.title !== undefined && !isStr(v.title)) return false;
   if (v.color !== undefined && !CARD_COLORS.has(v.color as CardColor)) return false;
   if (v.assignees !== undefined && !isStrArray(v.assignees)) return false;

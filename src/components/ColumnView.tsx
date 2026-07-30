@@ -4,6 +4,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import type { CardData, ColumnData } from "../types";
 import CardItem from "./CardItem";
 import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
+import { AUTO_COMPLETE_COLUMN_ID } from "../shared/reducer";
 
 interface Props {
   column: ColumnData;
@@ -87,39 +88,40 @@ export default function ColumnView({
             <CardItem key={card.id} card={card} onOpen={onOpenCard} />
           ))}
         </SortableContext>
-        {adding ? (
-          <div className="add-card-form">
-            <input
-              autoFocus
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") submitAdd();
-                if (e.key === "Escape") {
-                  setAdding(false);
-                  setTitle("");
-                }
-              }}
-              placeholder="Titre de l'étiquette…"
-            />
-            <div className="add-card-actions">
-              <button onClick={submitAdd}>Ajouter</button>
-              <button
-                className="ghost"
-                onClick={() => {
-                  setAdding(false);
-                  setTitle("");
+        {column.id !== AUTO_COMPLETE_COLUMN_ID &&
+          (adding ? (
+            <div className="add-card-form">
+              <input
+                autoFocus
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") submitAdd();
+                  if (e.key === "Escape") {
+                    setAdding(false);
+                    setTitle("");
+                  }
                 }}
-              >
-                Annuler
-              </button>
+                placeholder="Titre de l'étiquette…"
+              />
+              <div className="add-card-actions">
+                <button onClick={submitAdd}>Ajouter</button>
+                <button
+                  className="ghost"
+                  onClick={() => {
+                    setAdding(false);
+                    setTitle("");
+                  }}
+                >
+                  Annuler
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <button className="add-card-trigger" onClick={() => setAdding(true)}>
-            + Ajouter une étiquette
-          </button>
-        )}
+          ) : (
+            <button className="add-card-trigger" onClick={() => setAdding(true)}>
+              + Ajouter une étiquette
+            </button>
+          ))}
       </div>
       {dialog && <ConfirmDialog request={dialog} onClose={() => setDialog(null)} />}
     </div>
