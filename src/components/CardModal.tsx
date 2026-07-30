@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { CardData } from "../types";
 import { CARD_COLORS, PRIORITY_COLOR } from "../types";
 import { useStore } from "../store";
-import { formatDateTime } from "../utils";
+import { formatDateTime, getKnownSites } from "../utils";
 
 interface Props {
   card: CardData;
@@ -18,6 +18,7 @@ export default function CardModal({ card, onClose }: Props) {
   const columns = state.columns
     .filter((c) => c.boardId === card.boardId)
     .sort((a, b) => a.order - b.order);
+  const knownSites = getKnownSites(state.cards);
 
   function patch(fields: Partial<CardData>) {
     dispatch({ type: "UPDATE_CARD", cardId: card.id, patch: fields });
@@ -105,8 +106,18 @@ export default function CardModal({ card, onClose }: Props) {
             <input
               value={card.site ?? ""}
               placeholder="ex. Sacré-Cœur"
+              list="known-sites"
               onChange={(e) => patch({ site: e.target.value })}
             />
+            <datalist id="known-sites">
+              {knownSites.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+            <span className="field-hint">
+              Reprenez l'orthographe déjà utilisée ailleurs pour que ce ticket rejoigne le même site dans
+              la Vue par site.
+            </span>
           </div>
 
           <div className="modal-row">

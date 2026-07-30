@@ -1,6 +1,6 @@
 import type { CardData } from "../types";
 import { useStore } from "../store";
-import { boardName, columnTitle, displaySite, formatDate, formatDateTime } from "../utils";
+import { boardName, columnTitle, displaySite, formatDate, formatDateTime, siteKey } from "../utils";
 import ShareButton from "./ShareButton";
 import { buildShareLink, buildSitePayload } from "../share";
 
@@ -8,17 +8,41 @@ interface Props {
   onOpenCard: (card: CardData) => void;
 }
 
+interface SiteGroup {
+  key: string;
+  label: string;
+  cards: CardData[];
+}
+
 export default function SiteView({ onOpenCard }: Props) {
   const { state } = useStore();
 
-  const groups = new Map<string, CardData[]>();
+  // Cards are grouped by a normalized key (accents/case/hyphens ignored) so
+  // "Sacré-Cœur", "sacré coeur" etc. entered on different boards all land in
+  // the same group. The group is labeled with whichever raw spelling was
+  // used most often.
+  const groups = new Map<string, { label: string; cards: CardData[]; labelCounts: Map<string, number> }>();
   for (const card of state.cards) {
-    const key = displaySite(card);
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(card);
+    const raw = displaySite(card);
+    const key = siteKey(raw);
+    if (!groups.has(key)) groups.set(key, { label: raw, cards: [], labelCounts: new Map() });
+    const group = groups.get(key)!;
+    group.cards.push(card);
+    group.labelCounts.set(raw, (group.labelCounts.get(raw) ?? 0) + 1);
+    let bestLabel = group.label;
+    let bestCount = 0;
+    for (const [candidate, count] of group.labelCounts) {
+      if (count > bestCount) {
+        bestCount = count;
+        bestLabel = candidate;
+      }
+    }
+    group.label = bestLabel;
   }
 
-  const entries = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
+  const entries: SiteGroup[] = [...groups.entries()]
+    .map(([key, g]) => ({ key, label: g.label, cards: g.cards }))
+    .sort((a, b) => b.cards.length - a.cards.length);
 
   return (
     <div className="agg-view">
@@ -30,13 +54,13 @@ export default function SiteView({ onOpenCard }: Props) {
           externe un lien qui ne montre que ce site, sans accès au reste du suivi.
         </p>
       </div>
-      {entries.map(([site, cards]) => (
-        <div key={site} className="agg-group">
+      {entries.map(({ key, label, cards }) => (
+        <div key={key} className="agg-group">
           <div className="agg-group-header">
-            <h3>{site}</h3>
+            <h3>{label}</h3>
             <div className="agg-group-header-actions">
               <span className="agg-group-count">{cards.length} élément(s)</span>
-              <ShareButton buildLink={() => buildShareLink(buildSitePayload(state, site))} />
+              <ShareButton buildLink={() => buildShareLink(buildSitePayload(state, label))} />
             </div>
           </div>
           <div className="agg-cards">

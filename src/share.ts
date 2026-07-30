@@ -1,5 +1,5 @@
 import type { AppState, CardData } from "./types";
-import { boardName, columnTitle, displaySite } from "./utils";
+import { boardName, columnTitle, displaySite, siteKey } from "./utils";
 
 export interface SharedCard {
   title: string;
@@ -35,7 +35,8 @@ function toShared(state: AppState, card: CardData): SharedCard {
 }
 
 export function buildSitePayload(state: AppState, site: string): SharePayload {
-  const cards = state.cards.filter((c) => displaySite(c) === site);
+  const key = siteKey(site);
+  const cards = state.cards.filter((c) => siteKey(displaySite(c)) === key);
   return {
     kind: "site",
     name: site,
