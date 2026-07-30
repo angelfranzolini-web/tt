@@ -13,7 +13,11 @@ const PORT = Number(process.env.PORT) || 3000;
 const APP_PASSWORD = process.env.APP_PASSWORD;
 
 if (!APP_PASSWORD) {
-  console.error("APP_PASSWORD env var is required — refusing to start without a shared password.");
+  console.error(
+    "APP_PASSWORD env var is required — refusing to start without a shared password.\n" +
+      "Vérifiez qu'un fichier .env existe dans ce dossier avec une ligne APP_PASSWORD=... " +
+      "(enregistré en texte brut, pas via un éditeur qui sauvegarde en UTF-16)."
+  );
   process.exit(1);
 }
 
