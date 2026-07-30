@@ -11,6 +11,7 @@ import type { CardData } from "../types";
 import { useStore } from "../store";
 import ColumnView from "./ColumnView";
 import ShareButton from "./ShareButton";
+import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
 import { buildBoardPayload, buildShareLink } from "../share";
 
 interface Props {
@@ -22,6 +23,7 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
   const { state, dispatch } = useStore();
   const [addingColumn, setAddingColumn] = useState(false);
   const [newColTitle, setNewColTitle] = useState("");
+  const [dialog, setDialog] = useState<DialogRequest | null>(null);
 
   const board = state.boards.find((b) => b.id === boardId);
 
@@ -71,22 +73,40 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
 
   function renameBoard() {
     if (!board) return;
-    const next = window.prompt("Nouveau nom du tableau :", board.name);
-    if (next && next.trim()) dispatch({ type: "RENAME_BOARD", boardId, name: next.trim() });
+    setDialog({
+      title: "Renommer le tableau",
+      mode: "prompt",
+      defaultValue: board.name,
+      confirmLabel: "Renommer",
+      onConfirm: (value) => {
+        if (value && value.trim()) dispatch({ type: "RENAME_BOARD", boardId, name: value.trim() });
+      },
+    });
   }
 
   function deleteBoard() {
     if (!board) return;
     if (state.boards.length <= 1) {
-      window.alert("Impossible de supprimer le dernier tableau.");
+      setDialog({
+        title: "Impossible de supprimer",
+        message: "Il doit toujours rester au moins un tableau.",
+        mode: "alert",
+        onConfirm: () => {},
+      });
       return;
     }
-    if (window.confirm(`Supprimer le tableau « ${board.name} » et toutes ses étiquettes ?`)) {
-      dispatch({ type: "DELETE_BOARD", boardId });
-    }
+    setDialog({
+      title: "Supprimer ce tableau ?",
+      message: `« ${board.name} » et toutes ses étiquettes seront supprimés définitivement.`,
+      mode: "confirm",
+      confirmLabel: "Supprimer",
+      danger: true,
+      onConfirm: () => dispatch({ type: "DELETE_BOARD", boardId }),
+    });
   }
 
   return (
+    <>
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
       <div className="board-toolbar">
         <button className="icon-text-btn" onClick={renameBoard}>
@@ -140,5 +160,7 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
         </div>
       </div>
     </DndContext>
+      {dialog && <ConfirmDialog request={dialog} onClose={() => setDialog(null)} />}
+    </>
   );
 }

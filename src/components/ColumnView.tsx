@@ -3,6 +3,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { CardData, ColumnData } from "../types";
 import CardItem from "./CardItem";
+import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
 
 interface Props {
   column: ColumnData;
@@ -24,6 +25,7 @@ export default function ColumnView({
   const { setNodeRef } = useDroppable({ id: `coldrop-${column.id}` });
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState("");
+  const [dialog, setDialog] = useState<DialogRequest | null>(null);
 
   const sorted = [...cards].sort((a, b) => a.order - b.order);
 
@@ -35,16 +37,29 @@ export default function ColumnView({
   }
 
   function handleRename() {
-    const next = window.prompt("Nouveau nom du compartiment :", column.title);
-    if (next && next.trim()) onRenameColumn(column.id, next.trim());
+    setDialog({
+      title: "Renommer le compartiment",
+      mode: "prompt",
+      defaultValue: column.title,
+      confirmLabel: "Renommer",
+      onConfirm: (value) => {
+        if (value && value.trim()) onRenameColumn(column.id, value.trim());
+      },
+    });
   }
 
   function handleDelete() {
-    const msg =
-      sorted.length > 0
-        ? `Supprimer le compartiment « ${column.title} » et ses ${sorted.length} étiquette(s) ?`
-        : `Supprimer le compartiment « ${column.title} » ?`;
-    if (window.confirm(msg)) onDeleteColumn(column.id);
+    setDialog({
+      title: "Supprimer ce compartiment ?",
+      message:
+        sorted.length > 0
+          ? `« ${column.title} » et ses ${sorted.length} étiquette(s) seront supprimés définitivement.`
+          : `« ${column.title} » sera supprimé définitivement.`,
+      mode: "confirm",
+      confirmLabel: "Supprimer",
+      danger: true,
+      onConfirm: () => onDeleteColumn(column.id),
+    });
   }
 
   return (
@@ -101,6 +116,7 @@ export default function ColumnView({
           </button>
         )}
       </div>
+      {dialog && <ConfirmDialog request={dialog} onClose={() => setDialog(null)} />}
     </div>
   );
 }

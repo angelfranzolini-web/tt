@@ -15,17 +15,17 @@
 
 .app-header-top h1 {
   margin: 0 0 4px;
-  font-size: 22px;
+  font-size: 26px;
   color: #1e2430;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .app-logo {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   object-fit: cover;
 }
 
@@ -143,16 +143,16 @@
 
 .board-grid {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   align-items: flex-start;
-  min-height: 60vh;
 }
 
 .board-column {
   background: #e7e9ee;
   border-radius: 14px;
-  width: 260px;
-  min-width: 260px;
+  width: 240px;
+  min-width: 240px;
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -362,6 +362,62 @@
   width: 100%;
   max-width: 560px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.dialog-panel {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  padding: 18px 20px;
+}
+
+.dialog-panel h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  color: #1e2430;
+}
+
+.dialog-panel p {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  color: #6b7280;
+}
+
+.dialog-panel input {
+  width: 100%;
+  border: 1px solid #d7dae1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  margin-bottom: 14px;
+  box-sizing: border-box;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.dialog-actions button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #2563eb;
+  color: #fff;
+}
+
+.dialog-actions button.ghost {
+  background: #eef0f4;
+  color: #4b5563;
+}
+
+.dialog-actions button.danger {
+  background: #b3311a;
 }
 
 .modal-header {

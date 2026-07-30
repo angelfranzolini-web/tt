@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { CardData } from "../types";
 import { CARD_COLORS, PRIORITY_COLOR } from "../types";
 import { useStore } from "../store";
+import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
 import { detectSiteId, formatDateTime } from "../utils";
 
 interface Props {
@@ -14,6 +15,7 @@ export default function CardModal({ card, onClose }: Props) {
   const [assigneeInput, setAssigneeInput] = useState("");
   const [logAuthor, setLogAuthor] = useState("");
   const [logText, setLogText] = useState("");
+  const [dialog, setDialog] = useState<DialogRequest | null>(null);
 
   const columns = state.columns
     .filter((c) => c.boardId === card.boardId)
@@ -57,10 +59,17 @@ export default function CardModal({ card, onClose }: Props) {
   }
 
   function handleDelete() {
-    if (confirm(`Supprimer l'étiquette « ${card.title} » ?`)) {
-      dispatch({ type: "DELETE_CARD", cardId: card.id });
-      onClose();
-    }
+    setDialog({
+      title: "Supprimer cette étiquette ?",
+      message: `« ${card.title} » sera supprimée définitivement.`,
+      mode: "confirm",
+      confirmLabel: "Supprimer",
+      danger: true,
+      onConfirm: () => {
+        dispatch({ type: "DELETE_CARD", cardId: card.id });
+        onClose();
+      },
+    });
   }
 
   return (
@@ -234,6 +243,7 @@ export default function CardModal({ card, onClose }: Props) {
           </div>
         </div>
       </div>
+      {dialog && <ConfirmDialog request={dialog} onClose={() => setDialog(null)} />}
     </div>
   );
 }

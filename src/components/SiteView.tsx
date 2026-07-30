@@ -3,6 +3,7 @@ import type { CardData } from "../types";
 import { useStore } from "../store";
 import { boardName, columnTitle, formatDate, formatDateTime } from "../utils";
 import ShareButton from "./ShareButton";
+import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
 import { buildShareLink, buildSitePayload } from "../share";
 
 interface Props {
@@ -123,19 +124,34 @@ function AddSiteTicketForm({ siteId }: { siteId: string }) {
 export default function SiteView({ onOpenCard }: Props) {
   const { state, dispatch } = useStore();
 
+  const [dialog, setDialog] = useState<DialogRequest | null>(null);
+
   const sites = [...state.sites].sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
   function renameSite(siteId: string, current: string) {
-    const next = window.prompt("Nouveau nom du site :", current);
-    if (next && next.trim()) dispatch({ type: "RENAME_SITE", siteId, name: next.trim() });
+    setDialog({
+      title: "Renommer le site",
+      mode: "prompt",
+      defaultValue: current,
+      confirmLabel: "Renommer",
+      onConfirm: (value) => {
+        if (value && value.trim()) dispatch({ type: "RENAME_SITE", siteId, name: value.trim() });
+      },
+    });
   }
 
   function deleteSite(siteId: string, name: string, ticketCount: number) {
-    const msg =
-      ticketCount > 0
-        ? `Supprimer le site « ${name} » ? Ses ${ticketCount} ticket(s) ne seront pas supprimés, juste retirés de ce site.`
-        : `Supprimer le site « ${name} » ?`;
-    if (window.confirm(msg)) dispatch({ type: "DELETE_SITE", siteId });
+    setDialog({
+      title: `Supprimer le site « ${name} » ?`,
+      message:
+        ticketCount > 0
+          ? `Ses ${ticketCount} ticket(s) ne seront pas supprimés, juste retirés de ce site.`
+          : undefined,
+      mode: "confirm",
+      confirmLabel: "Supprimer",
+      danger: true,
+      onConfirm: () => dispatch({ type: "DELETE_SITE", siteId }),
+    });
   }
 
   return (
@@ -203,6 +219,7 @@ export default function SiteView({ onOpenCard }: Props) {
           </div>
         );
       })}
+      {dialog && <ConfirmDialog request={dialog} onClose={() => setDialog(null)} />}
     </div>
   );
 }
