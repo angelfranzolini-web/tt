@@ -41,13 +41,34 @@ sur chaque étiquette, fiche détail au clic, et suivi centralisé multi-sites.
   l'instant où il a été généré ; il suffit de renvoyer un nouveau lien pour
   partager une version à jour.
 
-Les données de travail sont conservées dans le `localStorage` du navigateur
-(pas de backend requis pour ce prototype).
+- **Backend partagé en temps réel** : un petit serveur Node.js (WebSocket)
+  garde les données côté serveur et les diffuse instantanément à tout le
+  monde de connecté — plus de copie isolée par navigateur. Accès protégé par
+  un mot de passe partagé simple (défini dans `.env`).
 
 ## Développement
 
 ```bash
 npm install
-npm run dev      # serveur de développement
-npm run build    # build de production dans dist/
+npm run build     # build du frontend dans dist/
+APP_PASSWORD=test123 npm run server   # démarre le serveur sur le port 3000
+```
+
+Ou, pour le rechargement à chaud du frontend pendant le développement
+(nécessite le serveur ci-dessus lancé en parallèle, Vite proxifie `/api` et
+`/ws` vers `http://localhost:3000`) :
+
+```bash
+npm run dev
+```
+
+## Déploiement en production (Docker + HTTPS)
+
+Voir [`DEPLOY.md`](./DEPLOY.md) pour les instructions complètes de
+déploiement sur un serveur Debian avec Docker et Caddy (HTTPS automatique via
+Let's Encrypt). En résumé :
+
+```bash
+cp .env.example .env   # puis éditez APP_PASSWORD
+docker compose up -d --build
 ```

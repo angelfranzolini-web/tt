@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { StoreProvider, useStore } from "./store";
+import LoginGate from "./components/LoginGate";
 import KanbanBoard from "./components/KanbanBoard";
 import CardModal from "./components/CardModal";
 import SiteView from "./components/SiteView";
@@ -11,8 +12,14 @@ import "./App.css";
 
 type ViewMode = { type: "board"; boardId: string } | { type: "site" } | { type: "person" };
 
-function AppInner() {
-  const { state, dispatch } = useStore();
+const STATUS_LABEL: Record<string, string> = {
+  connecting: "🟡 Connexion…",
+  connected: "🟢 Connecté",
+  disconnected: "🔴 Hors ligne — nouvelle tentative…",
+};
+
+function AppInner({ logout }: { logout: () => void }) {
+  const { state, dispatch, status, ready } = useStore();
   const [view, setView] = useState<ViewMode>({ type: "board", boardId: state.boards[0]?.id });
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [addingBoard, setAddingBoard] = useState(false);
@@ -36,6 +43,10 @@ function AppInner() {
     setAddingBoard(false);
   }
 
+  if (!ready) {
+    return <div className="app-loading">Chargement de SysView…</div>;
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -45,6 +56,12 @@ function AppInner() {
             SysView
           </h1>
           <p>Reproduction numérique du tableau mural, avec suivi centralisé multi-sites.</p>
+          <div className="app-header-status">
+            <span className="status-pill">{STATUS_LABEL[status]}</span>
+            <button className="icon-text-btn" onClick={logout}>
+              Se déconnecter
+            </button>
+          </div>
           <div className="color-legend">
             {COLOR_LEGEND.map((l) => (
               <span key={l.color} className="color-legend-item">
@@ -145,8 +162,12 @@ export default function App() {
   }
 
   return (
-    <StoreProvider>
-      <AppInner />
-    </StoreProvider>
+    <LoginGate>
+      {(token, logout) => (
+        <StoreProvider token={token} onUnauthorized={logout}>
+          <AppInner logout={logout} />
+        </StoreProvider>
+      )}
+    </LoginGate>
   );
 }

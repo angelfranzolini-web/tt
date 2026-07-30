@@ -1,0 +1,30 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      - APP_PASSWORD=${APP_PASSWORD:?Définissez APP_PASSWORD dans le fichier .env}
+      - PORT=3000
+      - DATA_FILE=/app/data/state.json
+    volumes:
+      - sysview_data:/app/data
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  sysview_data:
+  caddy_data:
+  caddy_config:
