@@ -1,6 +1,7 @@
 import express from "express";
 import http from "node:http";
 import path from "node:path";
+import fs from "node:fs";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { WebSocketServer, WebSocket } from "ws";
@@ -78,9 +79,24 @@ app.get("/api/state", requireAuth, (_req, res) => {
 });
 
 const distPath = path.join(process.cwd(), "dist");
+const indexHtmlPath = path.join(distPath, "index.html");
+if (!fs.existsSync(indexHtmlPath)) {
+  console.warn(
+    `Attention : ${indexHtmlPath} est introuvable. Lancez "npm run build" avant de démarrer le serveur — ` +
+      "en attendant, toutes les pages renverront une erreur."
+  );
+}
+
 app.use(express.static(distPath));
 app.use((_req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
+  if (!fs.existsSync(indexHtmlPath)) {
+    res
+      .status(503)
+      .type("text/plain")
+      .send('Le frontend n\'est pas construit. Lancez "npm run build" puis relancez le serveur.');
+    return;
+  }
+  res.sendFile(indexHtmlPath);
 });
 
 // Generic error handler: never leak stack traces or internals to clients.
