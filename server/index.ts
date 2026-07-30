@@ -5,6 +5,9 @@ import { WebSocketServer, WebSocket } from "ws";
 import { loadState, saveState } from "./dataStore";
 import { checkPassword, issueToken, isValidToken, requireAuth } from "./auth";
 import { reducer, type Action } from "../src/shared/reducer";
+import { loadDotEnv } from "./loadEnv";
+
+loadDotEnv();
 
 const PORT = Number(process.env.PORT) || 3000;
 const APP_PASSWORD = process.env.APP_PASSWORD;
