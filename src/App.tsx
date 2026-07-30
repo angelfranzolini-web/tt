@@ -40,7 +40,10 @@ function AppInner() {
     <div className="app-shell">
       <header className="app-header">
         <div className="app-header-top">
-          <h1>🗂️ SysView</h1>
+          <h1>
+            <img src="/logo.png" alt="" className="app-logo" />
+            SysView
+          </h1>
           <p>Reproduction numérique du tableau mural, avec suivi centralisé multi-sites.</p>
           <div className="color-legend">
             {COLOR_LEGEND.map((l) => (

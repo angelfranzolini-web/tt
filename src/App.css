@@ -17,6 +17,16 @@
   margin: 0 0 4px;
   font-size: 22px;
   color: #1e2430;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  object-fit: cover;
 }
 
 .app-header-top p {
