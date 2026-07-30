@@ -73,5 +73,5 @@ cp .env.example .env   # puis éditez APP_PASSWORD
 docker compose build
 docker compose up -d
 # puis configurer le VirtualHost Apache + certbot pour sysview.yansys.fr
-# (voir DEPLOY.md) — l'appli écoute en local sur 127.0.0.1:8020
+# (voir DEPLOY.md) — l'appli écoute en local sur 127.0.0.1:8015
 ```

@@ -12,7 +12,7 @@ services:
     # les autres sites) fait le reverse proxy HTTPS vers ce port, comme pour
     # les autres conteneurs de cette machine (127.0.0.1:80xx->80/tcp).
     ports:
-      - "127.0.0.1:8020:3000"
+      - "127.0.0.1:8015:3000"
 
 volumes:
   sysview_data:

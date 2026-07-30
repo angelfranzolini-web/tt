@@ -2,7 +2,7 @@
 
 Ce VPS héberge déjà d'autres sites/services de l'entreprise via **Apache**
 sur les ports 80/443 (GitLab, Mattermost, Dolibarr, etc.). SysView tourne
-donc dans Docker mais **écoute uniquement en local** (`127.0.0.1:8020`), et
+donc dans Docker mais **écoute uniquement en local** (`127.0.0.1:8015`), et
 c'est Apache — déjà en place — qui le publie sur
 `https://sysview.yansys.fr`, exactement comme pour vos autres conteneurs
 (`127.0.0.1:80xx->80/tcp`).
@@ -15,9 +15,9 @@ c'est Apache — déjà en place — qui le publie sur
    `certbot`/`python3-certbot-apache` (déjà utilisés pour vos autres sites
    HTTPS sur ce serveur).
 
-Le port `8020` est libre au moment de la rédaction de ce document — vérifiez
-avec `sudo ss -tlnp | grep 8020` avant de démarrer ; si un autre service
-l'utilise déjà, changez-le dans `docker-compose.yml` (`"127.0.0.1:8020:3000"`)
+Le port `8015` est libre au moment de la rédaction de ce document — vérifiez
+avec `sudo ss -tlnp | grep 8015` avant de démarrer ; si un autre service
+l'utilise déjà, changez-le dans `docker-compose.yml` (`"127.0.0.1:8015:3000"`)
 et dans la config Apache ci-dessous.
 
 ## 1. Construire et démarrer l'application
@@ -27,10 +27,10 @@ cd ~/SysView   # ou le dossier où vous avez mis les fichiers
 cp .env.example .env   # si pas déjà fait ; mettez un vrai mot de passe
 docker compose build
 docker compose up -d
-docker compose ps      # doit montrer "app" Up, écoutant sur 127.0.0.1:8020
+docker compose ps      # doit montrer "app" Up, écoutant sur 127.0.0.1:8015
 ```
 
-À ce stade, `curl http://127.0.0.1:8020/api/health` depuis le VPS doit
+À ce stade, `curl http://127.0.0.1:8015/api/health` depuis le VPS doit
 répondre `{"ok":true}`. L'appli n'est pas encore accessible depuis
 l'extérieur — c'est Apache qui doit la publier.
 
@@ -51,8 +51,8 @@ Créez `/etc/apache2/sites-available/sysview.yansys.fr.conf` :
     ProxyPreserveHost On
     # "upgrade=websocket" laisse passer la synchronisation temps réel
     # (WebSocket) en plus des requêtes HTTP normales.
-    ProxyPass / http://127.0.0.1:8020/ upgrade=websocket
-    ProxyPassReverse / http://127.0.0.1:8020/
+    ProxyPass / http://127.0.0.1:8015/ upgrade=websocket
+    ProxyPassReverse / http://127.0.0.1:8015/
 </VirtualHost>
 ```
 
