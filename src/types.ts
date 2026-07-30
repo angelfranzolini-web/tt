@@ -15,7 +15,7 @@ export interface CardData {
   title: string;
   color: CardColor;
   assignees: string[];
-  site?: string;
+  siteId?: string;
   note?: string;
   dueDate?: string; // yyyy-mm-dd
   priority?: "faible" | "moyenne" | "urgente";
@@ -36,10 +36,19 @@ export interface BoardData {
   icon?: string;
 }
 
+// A site is an external establishment (client premises) — a controlled,
+// user-managed list, distinct from internal software/tooling tickets which
+// have no site at all.
+export interface SiteData {
+  id: string;
+  name: string;
+}
+
 export interface AppState {
   boards: BoardData[];
   columns: ColumnData[];
   cards: CardData[];
+  sites: SiteData[];
 }
 
 export const CARD_COLORS: { value: CardColor; label: string }[] = [

@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { CardData } from "../types";
 import { CARD_COLORS, PRIORITY_COLOR } from "../types";
 import { useStore } from "../store";
-import { formatDateTime, getKnownSites } from "../utils";
+import { detectSiteId, formatDateTime } from "../utils";
 
 interface Props {
   card: CardData;
@@ -18,10 +18,15 @@ export default function CardModal({ card, onClose }: Props) {
   const columns = state.columns
     .filter((c) => c.boardId === card.boardId)
     .sort((a, b) => a.order - b.order);
-  const knownSites = getKnownSites(state.cards);
+  const sites = [...state.sites].sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
   function patch(fields: Partial<CardData>) {
     dispatch({ type: "UPDATE_CARD", cardId: card.id, patch: fields });
+  }
+
+  function handleTitleChange(title: string) {
+    const autoSiteId = card.siteId ? undefined : detectSiteId(title, state.sites);
+    patch(autoSiteId ? { title, siteId: autoSiteId } : { title });
   }
 
   function addAssignee() {
@@ -65,7 +70,7 @@ export default function CardModal({ card, onClose }: Props) {
           <input
             className="modal-title-input"
             value={card.title}
-            onChange={(e) => patch({ title: e.target.value })}
+            onChange={(e) => handleTitleChange(e.target.value)}
           />
           <button className="modal-close" onClick={onClose}>
             ✕
@@ -103,20 +108,20 @@ export default function CardModal({ card, onClose }: Props) {
 
           <div className="modal-row">
             <label>Site / zone</label>
-            <input
-              value={card.site ?? ""}
-              placeholder="ex. Sacré-Cœur"
-              list="known-sites"
-              onChange={(e) => patch({ site: e.target.value })}
-            />
-            <datalist id="known-sites">
-              {knownSites.map((s) => (
-                <option key={s} value={s} />
+            <select
+              value={card.siteId ?? ""}
+              onChange={(e) => patch({ siteId: e.target.value || undefined })}
+            >
+              <option value="">— Aucun site (ticket interne) —</option>
+              {sites.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
               ))}
-            </datalist>
+            </select>
             <span className="field-hint">
-              Reprenez l'orthographe déjà utilisée ailleurs pour que ce ticket rejoigne le même site dans
-              la Vue par site.
+              Les sites se créent depuis la Vue par site. Un titre qui mentionne un site existant
+              l'assigne automatiquement.
             </span>
           </div>
 

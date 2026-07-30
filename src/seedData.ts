@@ -1,7 +1,15 @@
-import type { AppState, CardData, ColumnData } from "./types";
+import type { AppState, CardData, ColumnData, SiteData } from "./types";
 
 const GENERAL = "board-general";
 const TODAY = "board-today";
+
+const SITE_SACRE_COEUR = "site-sacre-coeur";
+const SITE_TROCADERO = "site-trocadero";
+
+const sites: SiteData[] = [
+  { id: SITE_SACRE_COEUR, name: "Sacré-Cœur" },
+  { id: SITE_TROCADERO, name: "Trocadéro" },
+];
 
 const generalColumns: ColumnData[] = [
   { id: "col-dev", boardId: GENERAL, title: "Développement", order: 0 },
@@ -47,7 +55,7 @@ const generalCards: CardData[] = [
     order: 1,
     title: "Sacré-Cœur",
     color: "orange",
-    site: "Sacré-Cœur",
+    siteId: SITE_SACRE_COEUR,
     priority: "urgente",
     note: "Suivi si n° de dalle",
     description:
@@ -61,7 +69,7 @@ const generalCards: CardData[] = [
       },
     ],
   }),
-  card({ id: "c13", boardId: GENERAL, columnId: "col-prod", order: 2, title: "Trocadéro Vision", color: "orange", site: "Trocadéro" }),
+  card({ id: "c13", boardId: GENERAL, columnId: "col-prod", order: 2, title: "Trocadéro Vision", color: "orange", siteId: SITE_TROCADERO }),
 
   card({ id: "c14", boardId: GENERAL, columnId: "col-demarrage", order: 0, title: "Lyon Sud Station", color: "yellow", dueDate: "2026-07-20" }),
   card({ id: "c15", boardId: GENERAL, columnId: "col-demarrage", order: 1, title: "Hexagone - Best Pratiques", color: "yellow", note: "Prévu septembre" }),
@@ -83,7 +91,7 @@ const todayCards: CardData[] = [
     order: 0,
     title: "Organiser le suivi centralisé Sacré-Cœur",
     color: "orange",
-    site: "Sacré-Cœur",
+    siteId: SITE_SACRE_COEUR,
     assignees: ["Serge", "Maxime"],
     priority: "urgente",
     description:
@@ -96,7 +104,7 @@ const todayCards: CardData[] = [
     order: 0,
     title: "Sacré-Cœur — suivi n° de dalle",
     color: "orange",
-    site: "Sacré-Cœur",
+    siteId: SITE_SACRE_COEUR,
   }),
 ];
 
@@ -108,5 +116,6 @@ export function getSeedState(): AppState {
     ],
     columns: [...generalColumns, ...todayColumns],
     cards: [...generalCards, ...todayCards],
+    sites,
   };
 }

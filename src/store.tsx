@@ -1,13 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
-import type { AppState, BoardData, CardData, ColumnData, LogEntry } from "./types";
+import type { AppState, BoardData, CardData, ColumnData, LogEntry, SiteData } from "./types";
 import { getSeedState } from "./seedData";
+import { detectSiteId, siteKey } from "./utils";
 
 const STORAGE_KEY = "suivi-projets-state-v1";
 
 type Action =
   | { type: "MOVE_CARD"; cardId: string; toColumnId: string; toIndex: number }
   | { type: "UPDATE_CARD"; cardId: string; patch: Partial<CardData> }
-  | { type: "ADD_CARD"; boardId: string; columnId: string; title: string }
+  | { type: "ADD_CARD"; boardId: string; columnId: string; title: string; siteId?: string }
   | { type: "DELETE_CARD"; cardId: string }
   | { type: "ADD_LOG"; cardId: string; entry: LogEntry }
   | { type: "ADD_BOARD"; board: BoardData; columns: string[] }
@@ -15,12 +16,44 @@ type Action =
   | { type: "DELETE_BOARD"; boardId: string }
   | { type: "ADD_COLUMN"; boardId: string; title: string }
   | { type: "RENAME_COLUMN"; columnId: string; title: string }
-  | { type: "DELETE_COLUMN"; columnId: string };
+  | { type: "DELETE_COLUMN"; columnId: string }
+  | { type: "ADD_SITE"; name: string }
+  | { type: "RENAME_SITE"; siteId: string; name: string }
+  | { type: "DELETE_SITE"; siteId: string };
+
+interface RawStoredState {
+  boards: BoardData[];
+  columns: ColumnData[];
+  cards: (CardData & { site?: string })[];
+  sites?: SiteData[];
+}
+
+// Older stored states used a free-text `card.site` string instead of a
+// `siteId` referencing a registered site. Convert that data on load instead
+// of discarding it, so nobody loses tickets they'd already tagged.
+function migrate(raw: RawStoredState): AppState {
+  if (raw.sites) return raw as AppState;
+  const sites: SiteData[] = [];
+  const idByKey = new Map<string, string>();
+  const cards = raw.cards.map((card) => {
+    const { site, ...rest } = card;
+    if (!site || !site.trim()) return rest;
+    const key = siteKey(site.trim());
+    let id = idByKey.get(key);
+    if (!id) {
+      id = `site-migrated-${sites.length}`;
+      idByKey.set(key, id);
+      sites.push({ id, name: site.trim() });
+    }
+    return { ...rest, siteId: id };
+  });
+  return { ...raw, cards, sites };
+}
 
 function loadInitial(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as AppState;
+    if (raw) return migrate(JSON.parse(raw));
   } catch {
     // ignore corrupted storage
   }
@@ -58,6 +91,7 @@ function reducer(state: AppState, action: Action): AppState {
         color: "yellow",
         assignees: [],
         log: [],
+        siteId: action.siteId ?? detectSiteId(action.title, state.sites),
       };
       return { ...state, cards: [...state.cards, newCard] };
     }
@@ -115,6 +149,21 @@ function reducer(state: AppState, action: Action): AppState {
         boards: state.boards.filter((b) => b.id !== action.boardId),
         columns: state.columns.filter((c) => c.boardId !== action.boardId),
         cards: state.cards.filter((c) => c.boardId !== action.boardId),
+      };
+    case "ADD_SITE": {
+      const newSite: SiteData = { id: `site-${Date.now()}`, name: action.name };
+      return { ...state, sites: [...state.sites, newSite] };
+    }
+    case "RENAME_SITE":
+      return {
+        ...state,
+        sites: state.sites.map((s) => (s.id === action.siteId ? { ...s, name: action.name } : s)),
+      };
+    case "DELETE_SITE":
+      return {
+        ...state,
+        sites: state.sites.filter((s) => s.id !== action.siteId),
+        cards: state.cards.map((c) => (c.siteId === action.siteId ? { ...c, siteId: undefined } : c)),
       };
     default:
       return state;

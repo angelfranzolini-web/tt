@@ -1,7 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { CardData } from "../types";
-import { formatDate, isOverdue, isToday } from "../utils";
+import { useStore } from "../store";
+import { formatDate, isOverdue, isToday, siteName } from "../utils";
 
 interface Props {
   card: CardData;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function CardItem({ card, onOpen }: Props) {
+  const { state } = useStore();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
   });
@@ -32,6 +34,7 @@ export default function CardItem({ card, onOpen }: Props) {
       onClick={() => onOpen(card)}
     >
       <div className="sticky-title">{card.title}</div>
+      {siteName(state, card) && <div className="sticky-site">📍 {siteName(state, card)}</div>}
       {card.assignees.length > 0 && (
         <div className="sticky-assignees">{card.assignees.join(" / ")}</div>
       )}

@@ -1,6 +1,6 @@
 import type { CardData } from "../types";
 import { useStore } from "../store";
-import { boardName, columnTitle, displaySite, formatDate } from "../utils";
+import { boardName, columnTitle, formatDate, siteName } from "../utils";
 
 interface Props {
   onOpenCard: (card: CardData) => void;
@@ -45,7 +45,7 @@ export default function PersonView({ onOpenCard }: Props) {
                 <div className="agg-card-sub">
                   {boardName(state, card.boardId)} · {columnTitle(state, card.columnId)}
                 </div>
-                <div className="agg-card-people">📍 {displaySite(card)}</div>
+                {siteName(state, card) && <div className="agg-card-people">📍 {siteName(state, card)}</div>}
                 {card.dueDate && <div className="agg-card-due">📅 {formatDate(card.dueDate)}</div>}
               </button>
             ))}

@@ -1,33 +1,27 @@
-import type { AppState, CardData } from "./types";
+import type { AppState, CardData, SiteData } from "./types";
 
-export function displaySite(card: CardData): string {
-  return card.site && card.site.trim() ? card.site.trim() : card.title;
+export function siteById(state: AppState, siteId?: string): SiteData | undefined {
+  if (!siteId) return undefined;
+  return state.sites.find((s) => s.id === siteId);
 }
 
-// Canonical list of known site names (one per normalized key, using the
-// most-used spelling), for autocompletion when tagging a card's site.
-export function getKnownSites(cards: CardData[]): string[] {
-  const counts = new Map<string, Map<string, number>>();
-  for (const card of cards) {
-    const raw = displaySite(card);
-    const key = siteKey(raw);
-    if (!counts.has(key)) counts.set(key, new Map());
-    const byLabel = counts.get(key)!;
-    byLabel.set(raw, (byLabel.get(raw) ?? 0) + 1);
+export function siteName(state: AppState, card: CardData): string | undefined {
+  return siteById(state, card.siteId)?.name;
+}
+
+// Finds a registered site whose name appears in the given free text (ticket
+// title, description…), ignoring accents/case/ligatures. Longer site names
+// are checked first so a specific site isn't shadowed by a shorter one that
+// happens to be a substring of it.
+export function detectSiteId(text: string, sites: SiteData[]): string | undefined {
+  const haystack = siteKey(text);
+  if (!haystack) return undefined;
+  const candidates = [...sites].sort((a, b) => b.name.length - a.name.length);
+  for (const site of candidates) {
+    const needle = siteKey(site.name);
+    if (needle.length >= 3 && haystack.includes(needle)) return site.id;
   }
-  const labels: string[] = [];
-  for (const byLabel of counts.values()) {
-    let best = "";
-    let bestCount = 0;
-    for (const [label, count] of byLabel) {
-      if (count > bestCount) {
-        bestCount = count;
-        best = label;
-      }
-    }
-    labels.push(best);
-  }
-  return labels.sort((a, b) => a.localeCompare(b, "fr"));
+  return undefined;
 }
 
 // Groups equivalent site names together regardless of accents, case, ligatures
