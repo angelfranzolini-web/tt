@@ -1,56 +1,81 @@
-# Déployer SysView sur le VPS (Debian + Docker)
+# Déployer SysView (VPS partagé avec Apache)
 
-SysView est composé de trois parties :
-- un **serveur** (Node.js + WebSocket) qui garde les données en mémoire et les
-  sauvegarde dans un fichier JSON partagé — tout le monde qui se connecte voit
-  et modifie les mêmes données, en temps réel ;
-- **nginx** en reverse proxy devant le serveur, avec le support WebSocket ;
-- **certbot** qui obtient et renouvelle automatiquement le certificat HTTPS
-  (Let's Encrypt) utilisé par nginx.
+Ce VPS héberge déjà d'autres sites/services de l'entreprise via **Apache**
+sur les ports 80/443 (GitLab, Mattermost, Dolibarr, etc.). SysView tourne
+donc dans Docker mais **écoute uniquement en local** (`127.0.0.1:8020`), et
+c'est Apache — déjà en place — qui le publie sur
+`https://sysview.yansys.fr`, exactement comme pour vos autres conteneurs
+(`127.0.0.1:80xx->80/tcp`).
 
 ## Prérequis
 
-1. Un nom de domaine (ou sous-domaine) qui pointe vers l'IP publique du VPS.
-   Exemple utilisé dans ce dépôt : `sysview.yansys.fr`. Chez votre registrar,
-   créez un enregistrement **A** : `sysview.yansys.fr → <IP publique du VPS>`.
-2. Les ports **80** et **443** ouverts sur le pare-feu du VPS (Let's Encrypt a
-   besoin du port 80 pour valider le domaine).
-3. Docker et Docker Compose installés sur le VPS (`docker compose version`).
+1. Le DNS de `sysview.yansys.fr` doit pointer vers l'IP publique de ce VPS.
+2. Docker et Docker Compose installés (déjà le cas sur cette machine).
+3. Apache avec `mod_proxy`, `mod_proxy_http`, `mod_proxy_wstunnel` et
+   `certbot`/`python3-certbot-apache` (déjà utilisés pour vos autres sites
+   HTTPS sur ce serveur).
 
-Si votre domaine n'est pas `sysview.yansys.fr`, remplacez-le dans
-`nginx/conf.d/sysview.conf` (2 occurrences) et dans `init-letsencrypt.sh`
-avant de démarrer.
+Le port `8020` est libre au moment de la rédaction de ce document — vérifiez
+avec `sudo ss -tlnp | grep 8020` avant de démarrer ; si un autre service
+l'utilise déjà, changez-le dans `docker-compose.yml` (`"127.0.0.1:8020:3000"`)
+et dans la config Apache ci-dessous.
 
-## Étapes (premier déploiement)
+## 1. Construire et démarrer l'application
 
 ```bash
-# 1. Récupérer le code sur le VPS
-git clone <url-du-repo> sysview
-cd sysview
-git checkout claude/tableau-suivi-sacre-coeur-caaohn   # ou la branche/tag à déployer
-
-# 2. Définir le mot de passe partagé de l'équipe
-cp .env.example .env
-nano .env   # remplacez APP_PASSWORD par un vrai mot de passe
-
-# 3. Construire l'image de l'application
+cd ~/SysView   # ou le dossier où vous avez mis les fichiers
+cp .env.example .env   # si pas déjà fait ; mettez un vrai mot de passe
 docker compose build
-
-# 4. Amorcer le certificat HTTPS (une seule fois) : ce script crée un
-#    certificat temporaire, démarre nginx, puis demande le vrai certificat
-#    Let's Encrypt en mode webroot.
-LETSENCRYPT_EMAIL=admin@yansys.fr ./init-letsencrypt.sh
-
-# 5. Démarrer tous les services (nginx + certbot en renouvellement auto)
 docker compose up -d
+docker compose ps      # doit montrer "app" Up, écoutant sur 127.0.0.1:8020
 ```
 
-Au bout de quelques secondes, `https://sysview.yansys.fr` doit être
-accessible avec un cadenas valide. Tout le monde entre le mot de passe
-partagé (défini dans `.env`) pour accéder à l'appli.
+À ce stade, `curl http://127.0.0.1:8020/api/health` depuis le VPS doit
+répondre `{"ok":true}`. L'appli n'est pas encore accessible depuis
+l'extérieur — c'est Apache qui doit la publier.
 
-Le certificat se renouvelle tout seul ensuite (le service `certbot` tourne en
-tâche de fond et vérifie toutes les 12h).
+## 2. Configurer Apache pour sysview.yansys.fr
+
+Activez les modules nécessaires (si pas déjà fait) :
+
+```bash
+sudo a2enmod proxy proxy_http proxy_wstunnel rewrite ssl
+```
+
+Créez `/etc/apache2/sites-available/sysview.yansys.fr.conf` :
+
+```apache
+<VirtualHost *:80>
+    ServerName sysview.yansys.fr
+
+    ProxyPreserveHost On
+    # "upgrade=websocket" laisse passer la synchronisation temps réel
+    # (WebSocket) en plus des requêtes HTTP normales.
+    ProxyPass / http://127.0.0.1:8020/ upgrade=websocket
+    ProxyPassReverse / http://127.0.0.1:8020/
+</VirtualHost>
+```
+
+Activez le site et rechargez Apache :
+
+```bash
+sudo a2ensite sysview.yansys.fr
+sudo systemctl reload apache2
+```
+
+À ce stade, `http://sysview.yansys.fr` (encore en HTTP) doit déjà afficher
+SysView.
+
+## 3. Ajouter le certificat HTTPS
+
+```bash
+sudo certbot --apache -d sysview.yansys.fr
+```
+
+Certbot va dupliquer le VirtualHost ci-dessus dans un bloc `<VirtualHost
+*:443>` avec les certificats, et proposer de rediriger le HTTP vers HTTPS
+(répondez oui). Ensuite `https://sysview.yansys.fr` doit fonctionner avec un
+cadenas valide, y compris la synchronisation temps réel.
 
 ## Vérifier que ça tourne
 
@@ -76,9 +101,8 @@ git pull
 docker compose up -d --build
 ```
 
-Les données existantes ne sont pas touchées (elles vivent dans le volume, pas
-dans l'image). Pas besoin de relancer `init-letsencrypt.sh` — le certificat
-est déjà là et se renouvelle tout seul.
+Les données existantes ne sont pas touchées (elles vivent dans le volume,
+pas dans l'image). Rien à refaire côté Apache/certbot pour une mise à jour.
 
 ## Changer le mot de passe partagé
 
@@ -88,5 +112,4 @@ Modifiez `APP_PASSWORD` dans `.env`, puis :
 docker compose up -d
 ```
 
-Tout le monde devra se reconnecter avec le nouveau mot de passe (l'ancien
-jeton arrête de fonctionner).
+Tout le monde devra se reconnecter avec le nouveau mot de passe.

@@ -65,12 +65,13 @@ npm run dev
 ## Déploiement en production (Docker + HTTPS)
 
 Voir [`DEPLOY.md`](./DEPLOY.md) pour les instructions complètes de
-déploiement sur un serveur Debian avec Docker, nginx et certbot (HTTPS
-automatique via Let's Encrypt). En résumé :
+déploiement sur le VPS (Docker + Apache déjà en place pour les autres sites
+de l'entreprise, avec certificat HTTPS via certbot). En résumé :
 
 ```bash
 cp .env.example .env   # puis éditez APP_PASSWORD
 docker compose build
-./init-letsencrypt.sh  # une seule fois, au tout premier déploiement
 docker compose up -d
+# puis configurer le VirtualHost Apache + certbot pour sysview.yansys.fr
+# (voir DEPLOY.md) — l'appli écoute en local sur 127.0.0.1:8020
 ```
