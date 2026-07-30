@@ -1,6 +1,8 @@
 import type { CardData } from "../types";
 import { useStore } from "../store";
 import { boardName, columnTitle, displaySite, formatDate, formatDateTime } from "../utils";
+import ShareButton from "./ShareButton";
+import { buildShareLink, buildSitePayload } from "../share";
 
 interface Props {
   onOpenCard: (card: CardData) => void;
@@ -16,33 +18,27 @@ export default function SiteView({ onOpenCard }: Props) {
     groups.get(key)!.push(card);
   }
 
-  const entries = [...groups.entries()].sort((a, b) => {
-    if (a[0] === "Sacré-Cœur") return -1;
-    if (b[0] === "Sacré-Cœur") return 1;
-    return b[1].length - a[1].length;
-  });
+  const entries = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
 
   return (
     <div className="agg-view">
       <div className="agg-intro">
         <h2>Suivi par site / zone</h2>
         <p>
-          Vue centralisée demandée par Nikolas Besner : pour chaque site, qui travaille sur quoi, dans
-          quel compartiment, et le dernier point d'avancement — tous tableaux confondus.
+          Pour chaque site, qui travaille sur quoi, dans quel compartiment, et le dernier point
+          d'avancement — tous tableaux confondus. Utilisez « Partager » pour donner à une personne
+          externe un lien qui ne montre que ce site, sans accès au reste du suivi.
         </p>
       </div>
       {entries.map(([site, cards]) => (
-        <div key={site} className={`agg-group ${site === "Sacré-Cœur" ? "agg-group-highlight" : ""}`}>
+        <div key={site} className="agg-group">
           <div className="agg-group-header">
             <h3>{site}</h3>
-            <span className="agg-group-count">{cards.length} élément(s)</span>
-          </div>
-          {site === "Sacré-Cœur" && (
-            <div className="agg-callout">
-              📩 Demande initiale de Nikolas Besner : « avoir une bonne visibilité sur qui travaille sur
-              quoi et l'avancement des différents éléments ».
+            <div className="agg-group-header-actions">
+              <span className="agg-group-count">{cards.length} élément(s)</span>
+              <ShareButton buildLink={() => buildShareLink(buildSitePayload(state, site))} />
             </div>
-          )}
+          </div>
           <div className="agg-cards">
             {cards.map((card) => (
               <button key={card.id} className={`agg-card sticky-${card.color}`} onClick={() => onOpenCard(card)}>

@@ -11,8 +11,11 @@ type Action =
   | { type: "DELETE_CARD"; cardId: string }
   | { type: "ADD_LOG"; cardId: string; entry: LogEntry }
   | { type: "ADD_BOARD"; board: BoardData; columns: string[] }
+  | { type: "RENAME_BOARD"; boardId: string; name: string }
+  | { type: "DELETE_BOARD"; boardId: string }
   | { type: "ADD_COLUMN"; boardId: string; title: string }
-  | { type: "RENAME_COLUMN"; columnId: string; title: string };
+  | { type: "RENAME_COLUMN"; columnId: string; title: string }
+  | { type: "DELETE_COLUMN"; columnId: string };
 
 function loadInitial(): AppState {
   try {
@@ -94,6 +97,24 @@ function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         columns: state.columns.map((c) => (c.id === action.columnId ? { ...c, title: action.title } : c)),
+      };
+    case "DELETE_COLUMN":
+      return {
+        ...state,
+        columns: state.columns.filter((c) => c.id !== action.columnId),
+        cards: state.cards.filter((c) => c.columnId !== action.columnId),
+      };
+    case "RENAME_BOARD":
+      return {
+        ...state,
+        boards: state.boards.map((b) => (b.id === action.boardId ? { ...b, name: action.name } : b)),
+      };
+    case "DELETE_BOARD":
+      return {
+        ...state,
+        boards: state.boards.filter((b) => b.id !== action.boardId),
+        columns: state.columns.filter((c) => c.boardId !== action.boardId),
+        cards: state.cards.filter((c) => c.boardId !== action.boardId),
       };
     default:
       return state;

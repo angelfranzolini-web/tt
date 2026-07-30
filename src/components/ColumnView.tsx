@@ -9,9 +9,18 @@ interface Props {
   cards: CardData[];
   onOpenCard: (card: CardData) => void;
   onAddCard: (columnId: string, title: string) => void;
+  onRenameColumn: (columnId: string, title: string) => void;
+  onDeleteColumn: (columnId: string) => void;
 }
 
-export default function ColumnView({ column, cards, onOpenCard, onAddCard }: Props) {
+export default function ColumnView({
+  column,
+  cards,
+  onOpenCard,
+  onAddCard,
+  onRenameColumn,
+  onDeleteColumn,
+}: Props) {
   const { setNodeRef } = useDroppable({ id: `coldrop-${column.id}` });
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState("");
@@ -25,11 +34,32 @@ export default function ColumnView({ column, cards, onOpenCard, onAddCard }: Pro
     setAdding(false);
   }
 
+  function handleRename() {
+    const next = window.prompt("Nouveau nom du compartiment :", column.title);
+    if (next && next.trim()) onRenameColumn(column.id, next.trim());
+  }
+
+  function handleDelete() {
+    const msg =
+      sorted.length > 0
+        ? `Supprimer le compartiment « ${column.title} » et ses ${sorted.length} étiquette(s) ?`
+        : `Supprimer le compartiment « ${column.title} » ?`;
+    if (window.confirm(msg)) onDeleteColumn(column.id);
+  }
+
   return (
     <div className="board-column">
       <div className="board-column-header">
         <span>{column.title}</span>
-        <span className="board-column-count">{sorted.length}</span>
+        <span className="board-column-header-actions">
+          <span className="board-column-count">{sorted.length}</span>
+          <button className="column-icon-btn" title="Renommer" onClick={handleRename}>
+            ✎
+          </button>
+          <button className="column-icon-btn" title="Supprimer" onClick={handleDelete}>
+            🗑
+          </button>
+        </span>
       </div>
       <div className="board-column-body" ref={setNodeRef}>
         <SortableContext items={sorted.map((c) => c.id)} strategy={verticalListSortingStrategy}>

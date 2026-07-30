@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StoreProvider, useStore } from "./store";
 import KanbanBoard from "./components/KanbanBoard";
 import CardModal from "./components/CardModal";
 import SiteView from "./components/SiteView";
 import PersonView from "./components/PersonView";
-import type { CardData } from "./types";
+import ShareView from "./components/ShareView";
+import { decodeSharePayloadFromHash, type SharePayload } from "./share";
+import { COLOR_LEGEND, type CardData } from "./types";
 import "./App.css";
 
 type ViewMode = { type: "board"; boardId: string } | { type: "site" } | { type: "person" };
@@ -38,8 +40,15 @@ function AppInner() {
     <div className="app-shell">
       <header className="app-header">
         <div className="app-header-top">
-          <h1>🗂️ Suivi de projets — Sacré-Cœur &amp; autres sites</h1>
+          <h1>🗂️ Suivi de projets</h1>
           <p>Reproduction numérique du tableau mural, avec suivi centralisé multi-sites.</p>
+          <div className="color-legend">
+            {COLOR_LEGEND.map((l) => (
+              <span key={l.color} className="color-legend-item">
+                {l.emoji} {l.label}
+              </span>
+            ))}
+          </div>
         </div>
         <nav className="app-nav">
           <div className="app-nav-group">
@@ -106,7 +115,32 @@ function AppInner() {
   );
 }
 
+function useSharePayload(): SharePayload | null | undefined {
+  const [payload, setPayload] = useState<SharePayload | null | undefined>(() =>
+    decodeSharePayloadFromHash(window.location.hash)
+  );
+
+  useEffect(() => {
+    function onHashChange() {
+      setPayload(decodeSharePayloadFromHash(window.location.hash));
+    }
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  return payload;
+}
+
 export default function App() {
+  const sharePayload = useSharePayload();
+
+  if (window.location.hash.startsWith("#share=")) {
+    if (!sharePayload) {
+      return <div className="share-error">Lien de partage invalide ou corrompu.</div>;
+    }
+    return <ShareView payload={sharePayload} />;
+  }
+
   return (
     <StoreProvider>
       <AppInner />

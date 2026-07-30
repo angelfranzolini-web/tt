@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { CardData } from "../types";
-import { CARD_COLORS } from "../types";
+import { CARD_COLORS, PRIORITY_COLOR } from "../types";
 import { useStore } from "../store";
 import { formatDateTime } from "../utils";
 
@@ -142,13 +142,20 @@ export default function CardModal({ card, onClose }: Props) {
             <div>
               <label>Priorité</label>
               <select
-                value={card.priority ?? "normale"}
-                onChange={(e) => patch({ priority: e.target.value as CardData["priority"] })}
+                value={card.priority ?? "faible"}
+                onChange={(e) => {
+                  const priority = e.target.value as NonNullable<CardData["priority"]>;
+                  patch({ priority, color: PRIORITY_COLOR[priority] });
+                }}
               >
-                <option value="normale">Normale</option>
-                <option value="haute">Haute</option>
-                <option value="urgente">Urgente</option>
+                <option value="faible">Faible (vert)</option>
+                <option value="moyenne">Moyenne (jaune)</option>
+                <option value="urgente">Urgente (rouge)</option>
               </select>
+              <span className="field-hint">
+                Change aussi la couleur — le bleu (maintenance) et l'orange (autre) se choisissent manuellement
+                ci-dessus.
+              </span>
             </div>
           </div>
 

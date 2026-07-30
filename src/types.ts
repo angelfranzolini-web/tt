@@ -18,7 +18,7 @@ export interface CardData {
   site?: string;
   note?: string;
   dueDate?: string; // yyyy-mm-dd
-  priority?: "normale" | "haute" | "urgente";
+  priority?: "faible" | "moyenne" | "urgente";
   description?: string;
   log: LogEntry[];
 }
@@ -43,9 +43,23 @@ export interface AppState {
 }
 
 export const CARD_COLORS: { value: CardColor; label: string }[] = [
-  { value: "red", label: "Rouge" },
-  { value: "orange", label: "Orange" },
-  { value: "yellow", label: "Jaune" },
-  { value: "green", label: "Vert" },
-  { value: "blue", label: "Bleu" },
+  { value: "red", label: "Rouge — Urgent" },
+  { value: "yellow", label: "Jaune — Moyen" },
+  { value: "green", label: "Vert — Faible" },
+  { value: "blue", label: "Bleu — Maintenance" },
+  { value: "orange", label: "Orange — Autre" },
+];
+
+export const PRIORITY_COLOR: Record<NonNullable<CardData["priority"]>, CardColor> = {
+  faible: "green",
+  moyenne: "yellow",
+  urgente: "red",
+};
+
+export const COLOR_LEGEND: { color: CardColor; emoji: string; label: string }[] = [
+  { color: "green", emoji: "🟢", label: "Faible" },
+  { color: "yellow", emoji: "🟡", label: "Moyen" },
+  { color: "red", emoji: "🔴", label: "Urgent" },
+  { color: "blue", emoji: "🔵", label: "Maintenance" },
+  { color: "orange", emoji: "🟠", label: "Autre" },
 ];

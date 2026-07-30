@@ -20,9 +20,22 @@
 }
 
 .app-header-top p {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   color: #6b7280;
   font-size: 14px;
+}
+
+.color-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-bottom: 14px;
+}
+
+.color-legend-item {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4b5563;
 }
 
 .app-nav {
@@ -662,6 +675,237 @@ button.danger {
   background: rgba(255, 255, 255, 0.55);
   border-radius: 6px;
   padding: 4px 6px;
+}
+
+/* Board toolbar (rename / delete / share) */
+
+.board-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.icon-text-btn {
+  border: 1px solid #d7dae1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.icon-text-btn:hover {
+  background: #f5f6f8;
+}
+
+.field-hint {
+  display: block;
+  font-size: 11.5px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* Column header actions */
+
+.board-column-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.column-icon-btn {
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.column-icon-btn:hover {
+  background: #eef0f4;
+  color: #374151;
+}
+
+.agg-group-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Share button + popover */
+
+.share-button-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.share-trigger {
+  border: 1px solid #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.share-trigger:hover {
+  background: #dbeafe;
+}
+
+.share-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  background: #fff;
+  border: 1px solid #d7dae1;
+  border-radius: 10px;
+  padding: 10px;
+  width: 320px;
+  max-width: 80vw;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.share-popover input {
+  width: 100%;
+  border: 1px solid #d7dae1;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.share-popover button {
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.share-popover button.ghost {
+  background: #eef0f4;
+  color: #4b5563;
+}
+
+.share-popover p {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 2px 0 0;
+}
+
+/* Public share view (read-only) */
+
+.share-view {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+.share-view-header h1 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  color: #1e2430;
+}
+
+.share-view-header p {
+  margin: 0 0 4px;
+  color: #6b7280;
+  font-size: 13.5px;
+}
+
+.share-view-generated {
+  font-style: italic;
+}
+
+.share-cards {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.share-empty {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.share-card {
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.share-card-title {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.share-card-status {
+  font-size: 11.5px;
+  opacity: 0.8;
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.share-card-people,
+.share-card-due {
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.share-card-note {
+  font-size: 12.5px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+.share-card-desc {
+  font-size: 12.5px;
+  margin-top: 8px;
+  white-space: pre-wrap;
+}
+
+.share-card-log {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.share-card-log-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+.share-log-entry {
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.share-log-entry:last-child {
+  margin-bottom: 0;
+}
+
+.share-error {
+  max-width: 480px;
+  margin: 80px auto;
+  text-align: center;
+  color: #6b7280;
+  font-size: 15px;
 }
 
 @media (max-width: 640px) {

@@ -10,6 +10,8 @@ import {
 import type { CardData } from "../types";
 import { useStore } from "../store";
 import ColumnView from "./ColumnView";
+import ShareButton from "./ShareButton";
+import { buildBoardPayload, buildShareLink } from "../share";
 
 interface Props {
   boardId: string;
@@ -20,6 +22,8 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
   const { state, dispatch } = useStore();
   const [addingColumn, setAddingColumn] = useState(false);
   const [newColTitle, setNewColTitle] = useState("");
+
+  const board = state.boards.find((b) => b.id === boardId);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
@@ -65,8 +69,37 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
     setAddingColumn(false);
   }
 
+  function renameBoard() {
+    if (!board) return;
+    const next = window.prompt("Nouveau nom du tableau :", board.name);
+    if (next && next.trim()) dispatch({ type: "RENAME_BOARD", boardId, name: next.trim() });
+  }
+
+  function deleteBoard() {
+    if (!board) return;
+    if (state.boards.length <= 1) {
+      window.alert("Impossible de supprimer le dernier tableau.");
+      return;
+    }
+    if (window.confirm(`Supprimer le tableau « ${board.name} » et toutes ses étiquettes ?`)) {
+      dispatch({ type: "DELETE_BOARD", boardId });
+    }
+  }
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
+      <div className="board-toolbar">
+        <button className="icon-text-btn" onClick={renameBoard}>
+          ✎ Renommer le tableau
+        </button>
+        <button className="icon-text-btn" onClick={deleteBoard}>
+          🗑 Supprimer le tableau
+        </button>
+        <ShareButton
+          label="🔗 Partager ce tableau"
+          buildLink={() => buildShareLink(buildBoardPayload(state, boardId))}
+        />
+      </div>
       <div className="board-grid">
         {columns.map((col) => (
           <ColumnView
@@ -75,6 +108,8 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
             cards={cards.filter((c) => c.columnId === col.id)}
             onOpenCard={onOpenCard}
             onAddCard={(columnId, title) => dispatch({ type: "ADD_CARD", boardId, columnId, title })}
+            onRenameColumn={(columnId, title) => dispatch({ type: "RENAME_COLUMN", columnId, title })}
+            onDeleteColumn={(columnId) => dispatch({ type: "DELETE_COLUMN", columnId })}
           />
         ))}
         <div className="board-column add-column">
