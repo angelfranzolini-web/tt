@@ -69,7 +69,6 @@ export default function ColumnView({
       <div className="board-column-header">
         <span>{column.title}</span>
         <span className="board-column-header-actions">
-          <span className="board-column-count">{sorted.length}</span>
           {!locked && (
             <>
               <button className="column-icon-btn" title="Renommer" onClick={handleRename}>
