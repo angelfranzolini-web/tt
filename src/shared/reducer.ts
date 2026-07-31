@@ -26,7 +26,7 @@ export interface RawStoredState {
   sites?: SiteData[];
 }
 
-const LOCKED_BOARD_IDS = new Set(["board-general", "board-today"]);
+const LOCKED_BOARD_IDS = new Set(["board-general", "board-today", "board-action"]);
 
 // The "Fait" column of the "À faire aujourd'hui" board isn't a real
 // destination — dropping a ticket there marks it done and clears it from
@@ -34,15 +34,32 @@ const LOCKED_BOARD_IDS = new Set(["board-general", "board-today"]);
 // piling up finished tasks forever.
 export const AUTO_COMPLETE_COLUMN_ID = "col-today-fait";
 
+const ACTION_BOARD_ID = "board-action";
+const ACTION_COLUMN_ID = "col-action-rows";
+
+// Adds the "Tableau d'action" (flat Thème/Action/Qui/Début list) to states
+// saved before it existed, so it shows up for people who already have a
+// running SysView instance instead of only on fresh installs. Only the
+// empty board + column are added — no seed rows — so nothing is invented
+// into someone's real data.
+function ensureActionBoard(boards: BoardData[], columns: ColumnData[]): { boards: BoardData[]; columns: ColumnData[] } {
+  if (boards.some((b) => b.id === ACTION_BOARD_ID)) return { boards, columns };
+  return {
+    boards: [...boards, { id: ACTION_BOARD_ID, name: "Tableau d'action", icon: "📝", locked: true, viewType: "table" }],
+    columns: [...columns, { id: ACTION_COLUMN_ID, boardId: ACTION_BOARD_ID, title: "Actions", order: 0 }],
+  };
+}
+
 // Older stored states used a free-text `card.site` string instead of a
 // `siteId` referencing a registered site. Convert that data on load instead
 // of discarding it, so nobody loses tickets they'd already tagged. Also
-// re-applies the "locked" flag on the two default boards for states saved
-// before that flag existed.
+// re-applies the "locked" flag on the default boards for states saved
+// before that flag existed, and backfills the "Tableau d'action" board.
 export function migrate(raw: RawStoredState): AppState {
-  const boards = raw.boards.map((b) => (LOCKED_BOARD_IDS.has(b.id) ? { ...b, locked: true } : b));
+  const lockedBoards = raw.boards.map((b) => (LOCKED_BOARD_IDS.has(b.id) ? { ...b, locked: true } : b));
+  const { boards, columns } = ensureActionBoard(lockedBoards, raw.columns);
 
-  if (raw.sites) return { ...raw, boards } as AppState;
+  if (raw.sites) return { ...raw, boards, columns } as AppState;
 
   const sites: SiteData[] = [];
   const idByKey = new Map<string, string>();
@@ -58,7 +75,7 @@ export function migrate(raw: RawStoredState): AppState {
     }
     return { ...rest, siteId: id };
   });
-  return { ...raw, boards, cards, sites };
+  return { ...raw, boards, columns, cards, sites };
 }
 
 export function reducer(state: AppState, action: Action): AppState {

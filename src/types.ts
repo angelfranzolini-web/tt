@@ -21,6 +21,10 @@ export interface CardData {
   priority?: "faible" | "moyenne" | "urgente";
   description?: string;
   log: LogEntry[];
+  // Free-text theme/category, used by "table" boards (ex. le tableau
+  // d'action : Thème / Action / Qui / Début) — independent of the site
+  // registry since a theme isn't necessarily a client site.
+  theme?: string;
 }
 
 export interface ColumnData {
@@ -41,6 +45,10 @@ export interface BoardData {
   // Stable, unguessable id used by the live share link (see shared/reducer's
   // ENSURE_BOARD_SHARE) — assigned once and kept forever once set.
   shareId?: string;
+  // "table" boards render as a flat, spreadsheet-style list (Thème / Action
+  // / Qui / Début) instead of Kanban columns. Defaults to "kanban" when
+  // absent, for backward compatibility.
+  viewType?: "kanban" | "table";
 }
 
 // A site is an external establishment (client premises) — a controlled,

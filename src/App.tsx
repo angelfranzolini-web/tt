@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { StoreProvider, useStore } from "./store";
 import LoginGate from "./components/LoginGate";
 import KanbanBoard from "./components/KanbanBoard";
+import ActionTableView from "./components/ActionTableView";
 import CardModal from "./components/CardModal";
 import SiteView from "./components/SiteView";
 import PersonView from "./components/PersonView";
@@ -139,9 +140,13 @@ function AppInner({ logout }: { logout: () => void }) {
       </header>
 
       <main className="app-main">
-        {view.type === "board" && view.boardId && (
-          <KanbanBoard boardId={view.boardId} onOpenCard={(c: CardData) => setOpenCardId(c.id)} />
-        )}
+        {view.type === "board" &&
+          view.boardId &&
+          (state.boards.find((b) => b.id === view.boardId)?.viewType === "table" ? (
+            <ActionTableView boardId={view.boardId} />
+          ) : (
+            <KanbanBoard boardId={view.boardId} onOpenCard={(c: CardData) => setOpenCardId(c.id)} />
+          ))}
         {view.type === "site" && <SiteView onOpenCard={(c) => setOpenCardId(c.id)} />}
         {view.type === "person" && <PersonView onOpenCard={(c) => setOpenCardId(c.id)} />}
       </main>

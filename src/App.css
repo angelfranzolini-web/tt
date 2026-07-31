@@ -754,6 +754,62 @@ button.danger {
   font-size: 14px;
 }
 
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.filter-search {
+  border: 1px solid #d7dae1;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  min-width: 180px;
+  flex: 1 1 180px;
+}
+
+.filter-bar select {
+  border: 1px solid #d7dae1;
+  border-radius: 8px;
+  padding: 7px 8px;
+  font-size: 12.5px;
+  background: #fff;
+  color: #374151;
+}
+
+.filter-chip {
+  border: 1px solid #d7dae1;
+  background: #f5f6f8;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.filter-chip.active {
+  background: #1e2430;
+  border-color: #1e2430;
+  color: #fff;
+}
+
+.filter-clear {
+  border: none;
+  background: transparent;
+  color: #b3311a;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
 .agg-group {
   background: #fff;
   border-radius: 14px;
@@ -843,6 +899,14 @@ button.danger {
   font-weight: 600;
 }
 
+.agg-card-due.overdue {
+  color: #7a0d0d;
+}
+
+.agg-card-due.due-today {
+  color: #16341a;
+}
+
 .agg-card-last-log {
   margin-top: 6px;
   font-size: 11.5px;
@@ -880,6 +944,66 @@ button.danger {
   font-size: 11.5px;
   color: #9ca3af;
   margin-top: 4px;
+}
+
+/* Action table (flat Thème / Action / Qui / Début list) */
+
+.action-table-wrap {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+}
+
+.action-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.action-table th {
+  text-align: left;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6b7280;
+  padding: 6px 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.action-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.action-table td input {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 7px 8px;
+  font-size: 13.5px;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.action-table td input:hover {
+  border-color: #d7dae1;
+}
+
+.action-table td input:focus {
+  border-color: #2563eb;
+  background: #fff;
+  outline: none;
+}
+
+.action-row-delete {
+  width: 32px;
+  text-align: center;
+}
+
+.action-add-row {
+  margin-top: 10px;
+  max-width: 220px;
 }
 
 /* Column header actions */

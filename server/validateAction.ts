@@ -41,10 +41,12 @@ function validCardPatch(v: unknown): boolean {
     "dueDate",
     "priority",
     "description",
+    "theme",
   ]);
   for (const key of Object.keys(v)) {
     if (!allowed.has(key)) return false;
   }
+  if (v.theme !== undefined && v.theme !== null && !isStr(v.theme)) return false;
   if (v.columnId !== undefined && !isStr(v.columnId)) return false;
   if (v.title !== undefined && !isStr(v.title)) return false;
   if (v.color !== undefined && !CARD_COLORS.has(v.color as CardColor)) return false;
