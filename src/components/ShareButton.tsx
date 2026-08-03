@@ -9,16 +9,9 @@ export default function ShareButton({ buildLink, label = "🔗 Partager" }: Prop
   const [link, setLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  async function handleClick() {
-    const url = buildLink();
-    setLink(url);
+  function handleClick() {
+    setLink(buildLink());
     setCopied(false);
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-    } catch {
-      // clipboard may be unavailable — the link is still shown for manual copy
-    }
   }
 
   return (
