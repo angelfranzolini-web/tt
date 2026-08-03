@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { CardData } from "../types";
 import { CARD_COLORS, PRIORITY_COLOR } from "../types";
 import { useStore } from "../store";
+import Autocomplete from "./Autocomplete";
 import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
 import { detectSiteId, formatDateTime } from "../utils";
 
@@ -12,7 +13,6 @@ interface Props {
 
 export default function CardModal({ card, onClose }: Props) {
   const { state, dispatch } = useStore();
-  const [assigneeInput, setAssigneeInput] = useState("");
   const [logAuthor, setLogAuthor] = useState("");
   const [logText, setLogText] = useState("");
   const [dialog, setDialog] = useState<DialogRequest | null>(null);
@@ -21,6 +21,8 @@ export default function CardModal({ card, onClose }: Props) {
     .filter((c) => c.boardId === card.boardId)
     .sort((a, b) => a.order - b.order);
   const sites = [...state.sites].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const users = [...state.users].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const currentSiteName = sites.find((s) => s.id === card.siteId)?.name ?? "";
 
   function patch(fields: Partial<CardData>) {
     dispatch({ type: "UPDATE_CARD", cardId: card.id, patch: fields });
@@ -31,11 +33,10 @@ export default function CardModal({ card, onClose }: Props) {
     patch(autoSiteId ? { title, siteId: autoSiteId } : { title });
   }
 
-  function addAssignee() {
-    const name = assigneeInput.trim();
-    if (!name) return;
-    patch({ assignees: [...card.assignees, name] });
-    setAssigneeInput("");
+  function addAssignee(name: string) {
+    const trimmed = name.trim();
+    if (!trimmed || card.assignees.includes(trimmed)) return;
+    patch({ assignees: [...card.assignees, trimmed] });
   }
 
   function removeAssignee(name: string) {
@@ -119,17 +120,20 @@ export default function CardModal({ card, onClose }: Props) {
 
           <div className="modal-row">
             <label>Site / zone</label>
-            <select
-              value={card.siteId ?? ""}
-              onChange={(e) => patch({ siteId: e.target.value || undefined })}
-            >
-              <option value="">— Aucun site (ticket interne) —</option>
-              {sites.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+            <div className="autocomplete-with-clear">
+              <Autocomplete
+                options={sites.map((s) => ({ id: s.id, label: s.name }))}
+                value={currentSiteName}
+                clearOnSelect={false}
+                placeholder="Rechercher un site… (ex. « cli »)"
+                onSelect={(opt) => patch({ siteId: opt.id })}
+              />
+              {card.siteId && (
+                <button type="button" className="ghost" onClick={() => patch({ siteId: undefined })}>
+                  ✕ Retirer
+                </button>
+              )}
+            </div>
             <span className="field-hint">
               Les sites se créent depuis la Vue par site. Un titre qui mentionne un site existant
               l'assigne automatiquement.
@@ -162,14 +166,17 @@ export default function CardModal({ card, onClose }: Props) {
               ))}
             </div>
             <div className="inline-add">
-              <input
-                value={assigneeInput}
-                placeholder="Ajouter une personne…"
-                onChange={(e) => setAssigneeInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addAssignee()}
+              <Autocomplete
+                options={users.map((u) => ({ id: u.id, label: u.name }))}
+                placeholder="Ajouter une personne… (ex. « a »)"
+                onSelect={(opt) => addAssignee(opt.label)}
+                onSelectFreeText={(text) => addAssignee(text)}
               />
-              <button onClick={addAssignee}>Ajouter</button>
             </div>
+            <span className="field-hint">
+              Les personnes se gèrent depuis l'onglet Utilisateurs — tapez pour filtrer, ou un nom
+              inédit pour l'ajouter à la volée.
+            </span>
           </div>
 
           <div className="modal-row two-col">

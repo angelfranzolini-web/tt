@@ -164,6 +164,18 @@ export function validateAction(raw: unknown): Action | null {
       if (isStr(a.siteId)) return { type: "DELETE_SITE", siteId: a.siteId };
       return null;
 
+    case "ADD_USER":
+      if (isStr(a.name)) return { type: "ADD_USER", name: a.name };
+      return null;
+
+    case "RENAME_USER":
+      if (isStr(a.userId) && isStr(a.name)) return { type: "RENAME_USER", userId: a.userId, name: a.name };
+      return null;
+
+    case "DELETE_USER":
+      if (isStr(a.userId)) return { type: "DELETE_USER", userId: a.userId };
+      return null;
+
     case "ENSURE_SITE_SHARE":
       if (isStr(a.siteId) && isStr(a.shareId, 100)) {
         return { type: "ENSURE_SITE_SHARE", siteId: a.siteId, shareId: a.shareId };

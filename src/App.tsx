@@ -6,12 +6,13 @@ import ActionTableView from "./components/ActionTableView";
 import CardModal from "./components/CardModal";
 import SiteView from "./components/SiteView";
 import PersonView from "./components/PersonView";
+import UserView from "./components/UserView";
 import LiveShareView from "./components/LiveShareView";
 import { shareIdFromHash } from "./share";
 import { COLOR_LEGEND, type CardData } from "./types";
 import "./App.css";
 
-type ViewMode = { type: "board"; boardId: string } | { type: "site" } | { type: "person" };
+type ViewMode = { type: "board"; boardId: string } | { type: "site" } | { type: "person" } | { type: "user" };
 
 const STATUS_LABEL: Record<string, string> = {
   connecting: "🟡 Connexion…",
@@ -135,6 +136,12 @@ function AppInner({ logout }: { logout: () => void }) {
             >
               👤 Vue par personne
             </button>
+            <button
+              className={`nav-btn nav-btn-agg ${view.type === "user" ? "active" : ""}`}
+              onClick={() => setView({ type: "user" })}
+            >
+              👥 Utilisateurs
+            </button>
           </div>
         </nav>
       </header>
@@ -149,6 +156,7 @@ function AppInner({ logout }: { logout: () => void }) {
           ))}
         {view.type === "site" && <SiteView onOpenCard={(c) => setOpenCardId(c.id)} />}
         {view.type === "person" && <PersonView onOpenCard={(c) => setOpenCardId(c.id)} />}
+        {view.type === "user" && <UserView />}
       </main>
 
       {openCard && <CardModal card={openCard} onClose={() => setOpenCardId(null)} />}

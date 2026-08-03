@@ -1,4 +1,5 @@
 import type { AppState, CardData, ColumnData, SiteData } from "./types";
+import { deriveUsersFromCards } from "./utils";
 
 const GENERAL = "board-general";
 const TODAY = "board-today";
@@ -67,5 +68,6 @@ export function getSeedState(): AppState {
     columns: [...generalColumns, ...todayColumns, ...actionColumns],
     cards: [...actionCards],
     sites,
+    users: deriveUsersFromCards(actionCards),
   };
 }

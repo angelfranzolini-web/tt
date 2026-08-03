@@ -1,4 +1,4 @@
-import type { AppState, CardData, SiteData } from "./types";
+import type { AppState, CardData, SiteData, UserData } from "./types";
 
 export function siteById(state: AppState, siteId?: string): SiteData | undefined {
   if (!siteId) return undefined;
@@ -37,6 +37,26 @@ export function siteKey(site: string): string {
     .replace(/[-_]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// Builds an initial "Utilisateurs" registry from names already used as
+// assignees, so states saved before that registry existed (or a fresh
+// install seeded from the whiteboard data) aren't left with an empty
+// suggestion list — mirrors how site migration recovers existing site names.
+export function deriveUsersFromCards(cards: CardData[]): UserData[] {
+  const users: UserData[] = [];
+  const seen = new Set<string>();
+  for (const card of cards) {
+    for (const name of card.assignees) {
+      const trimmed = name.trim();
+      if (!trimmed) continue;
+      const key = siteKey(trimmed);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      users.push({ id: `user-${users.length}`, name: trimmed });
+    }
+  }
+  return users;
 }
 
 export function columnTitle(state: AppState, columnId: string): string {

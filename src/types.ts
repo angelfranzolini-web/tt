@@ -66,11 +66,21 @@ export interface SiteData {
   shareId?: string;
 }
 
+// A known team member — a controlled, user-managed list (the "Utilisateurs"
+// tab) that feeds the assignee autocomplete on tickets. Not a strict foreign
+// key: CardData.assignees stays a plain string list, so nothing breaks if a
+// name here is renamed/removed after already being used on a ticket.
+export interface UserData {
+  id: string;
+  name: string;
+}
+
 export interface AppState {
   boards: BoardData[];
   columns: ColumnData[];
   cards: CardData[];
   sites: SiteData[];
+  users: UserData[];
 }
 
 export const CARD_COLORS: { value: CardColor; label: string }[] = [

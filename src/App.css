@@ -722,6 +722,72 @@
   font-weight: 600;
 }
 
+.inline-add .autocomplete {
+  flex: 1;
+}
+
+.autocomplete {
+  position: relative;
+}
+
+.autocomplete input {
+  width: 100%;
+  border: 1px solid #d7dae1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.autocomplete-list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #d7dae1;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+}
+
+.autocomplete-list li {
+  padding: 7px 9px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.autocomplete-list li.active,
+.autocomplete-list li:hover {
+  background: #eef2ff;
+}
+
+.autocomplete-with-clear {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.autocomplete-with-clear .autocomplete {
+  flex: 1;
+}
+
+.autocomplete-with-clear button {
+  white-space: nowrap;
+  border: 1px solid #d7dae1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: #6b7280;
+}
+
 .log-list {
   display: flex;
   flex-direction: column;
@@ -914,6 +980,25 @@ button.danger {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 10px;
   margin-bottom: 10px;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.user-row:last-child {
+  border-bottom: none;
+}
+
+.user-row-name {
+  flex: 1;
+  font-weight: 600;
+  color: #1e2430;
+  font-size: 14px;
 }
 
 .site-add-ticket-trigger {

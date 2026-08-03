@@ -1,5 +1,5 @@
-import type { AppState, BoardData, CardData, ColumnData, LogEntry, SiteData } from "../types";
-import { detectSiteId, siteKey } from "../utils";
+import type { AppState, BoardData, CardData, ColumnData, LogEntry, SiteData, UserData } from "../types";
+import { deriveUsersFromCards, detectSiteId, siteKey } from "../utils";
 
 export type Action =
   | { type: "MOVE_CARD"; cardId: string; toColumnId: string; toIndex: number }
@@ -16,6 +16,9 @@ export type Action =
   | { type: "ADD_SITE"; name: string }
   | { type: "RENAME_SITE"; siteId: string; name: string }
   | { type: "DELETE_SITE"; siteId: string }
+  | { type: "ADD_USER"; name: string }
+  | { type: "RENAME_USER"; userId: string; name: string }
+  | { type: "DELETE_USER"; userId: string }
   | { type: "ENSURE_SITE_SHARE"; siteId: string; shareId: string }
   | { type: "ENSURE_BOARD_SHARE"; boardId: string; shareId: string };
 
@@ -24,6 +27,7 @@ export interface RawStoredState {
   columns: ColumnData[];
   cards: (CardData & { site?: string })[];
   sites?: SiteData[];
+  users?: UserData[];
 }
 
 const LOCKED_BOARD_IDS = new Set(["board-general", "board-today", "board-action"]);
@@ -59,23 +63,30 @@ export function migrate(raw: RawStoredState): AppState {
   const lockedBoards = raw.boards.map((b) => (LOCKED_BOARD_IDS.has(b.id) ? { ...b, locked: true } : b));
   const { boards, columns } = ensureActionBoard(lockedBoards, raw.columns);
 
-  if (raw.sites) return { ...raw, boards, columns } as AppState;
+  let sites: SiteData[];
+  let cards: CardData[];
+  if (raw.sites) {
+    sites = raw.sites;
+    cards = raw.cards;
+  } else {
+    sites = [];
+    const idByKey = new Map<string, string>();
+    cards = raw.cards.map((card) => {
+      const { site, ...rest } = card;
+      if (!site || !site.trim()) return rest;
+      const key = siteKey(site.trim());
+      let id = idByKey.get(key);
+      if (!id) {
+        id = `site-migrated-${sites.length}`;
+        idByKey.set(key, id);
+        sites.push({ id, name: site.trim() });
+      }
+      return { ...rest, siteId: id };
+    });
+  }
 
-  const sites: SiteData[] = [];
-  const idByKey = new Map<string, string>();
-  const cards = raw.cards.map((card) => {
-    const { site, ...rest } = card;
-    if (!site || !site.trim()) return rest;
-    const key = siteKey(site.trim());
-    let id = idByKey.get(key);
-    if (!id) {
-      id = `site-migrated-${sites.length}`;
-      idByKey.set(key, id);
-      sites.push({ id, name: site.trim() });
-    }
-    return { ...rest, siteId: id };
-  });
-  return { ...raw, boards, columns, cards, sites };
+  const users = raw.users ?? deriveUsersFromCards(cards);
+  return { ...raw, boards, columns, cards, sites, users };
 }
 
 export function reducer(state: AppState, action: Action): AppState {
@@ -200,6 +211,17 @@ export function reducer(state: AppState, action: Action): AppState {
         sites: state.sites.filter((s) => s.id !== action.siteId),
         cards: state.cards.map((c) => (c.siteId === action.siteId ? { ...c, siteId: undefined } : c)),
       };
+    case "ADD_USER": {
+      const newUser: UserData = { id: `user-${Date.now()}`, name: action.name };
+      return { ...state, users: [...state.users, newUser] };
+    }
+    case "RENAME_USER":
+      return {
+        ...state,
+        users: state.users.map((u) => (u.id === action.userId ? { ...u, name: action.name } : u)),
+      };
+    case "DELETE_USER":
+      return { ...state, users: state.users.filter((u) => u.id !== action.userId) };
     case "ENSURE_SITE_SHARE": {
       const site = state.sites.find((s) => s.id === action.siteId);
       if (!site || site.shareId) return state; // already has one — first write wins
