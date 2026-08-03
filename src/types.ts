@@ -74,7 +74,7 @@ export const CARD_COLORS: { value: CardColor; label: string }[] = [
   { value: "yellow", label: "Jaune — Moyen" },
   { value: "green", label: "Vert — Faible" },
   { value: "blue", label: "Bleu — Maintenance" },
-  { value: "orange", label: "Orange — Autre" },
+  { value: "orange", label: "Gris — Autre" },
 ];
 
 export const PRIORITY_COLOR: Record<NonNullable<CardData["priority"]>, CardColor> = {
@@ -83,10 +83,10 @@ export const PRIORITY_COLOR: Record<NonNullable<CardData["priority"]>, CardColor
   urgente: "red",
 };
 
-export const COLOR_LEGEND: { color: CardColor; emoji: string; label: string }[] = [
-  { color: "green", emoji: "🟢", label: "Faible" },
-  { color: "yellow", emoji: "🟡", label: "Moyen" },
-  { color: "red", emoji: "🔴", label: "Urgent" },
-  { color: "blue", emoji: "🔵", label: "Maintenance" },
-  { color: "orange", emoji: "🟠", label: "Autre" },
+export const COLOR_LEGEND: { color: CardColor; label: string }[] = [
+  { color: "green", label: "Faible" },
+  { color: "yellow", label: "Moyen" },
+  { color: "red", label: "Urgent" },
+  { color: "blue", label: "Maintenance" },
+  { color: "orange", label: "Autre" },
 ];

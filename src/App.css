@@ -13,6 +13,12 @@
   z-index: 5;
 }
 
+.logout-corner-btn {
+  position: absolute;
+  top: 20px;
+  right: 28px;
+}
+
 .app-header-top h1 {
   margin: 0 0 4px;
   font-size: 26px;
@@ -126,6 +132,31 @@
   flex-wrap: wrap;
   gap: 4px 14px;
   margin-bottom: 14px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-bottom: 1px;
+}
+
+.legend-dot.color-red {
+  background: #ef5b41;
+}
+.legend-dot.color-orange {
+  background: #9ca3af;
+}
+.legend-dot.color-yellow {
+  background: #f6d33e;
+}
+.legend-dot.color-green {
+  background: #9ed14e;
+}
+.legend-dot.color-blue {
+  background: #4fb6e0;
 }
 
 .color-legend-item {
@@ -353,8 +384,8 @@
   color: #fff;
 }
 .sticky-orange {
-  background: #f4913a;
-  color: #2a1400;
+  background: #9ca3af;
+  color: #1c1f26;
 }
 .sticky-yellow {
   background: #f6d33e;
@@ -595,7 +626,7 @@
   background: #ef5b41;
 }
 .color-dot.color-orange {
-  background: #f4913a;
+  background: #9ca3af;
 }
 .color-dot.color-yellow {
   background: #f6d33e;

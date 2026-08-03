@@ -67,6 +67,9 @@ function AppInner({ logout }: { logout: () => void }) {
   return (
     <div className="app-shell">
       <header className="app-header">
+        <button className="icon-text-btn logout-corner-btn" onClick={logout}>
+          Se déconnecter
+        </button>
         <div className="app-header-top">
           <h1>
             <img src="/logo.png" alt="" className="app-logo" />
@@ -75,14 +78,11 @@ function AppInner({ logout }: { logout: () => void }) {
           <p>Reproduction numérique du tableau mural, avec suivi centralisé multi-sites.</p>
           <div className="app-header-status">
             <span className="status-pill">{STATUS_LABEL[status]}</span>
-            <button className="icon-text-btn" onClick={logout}>
-              Se déconnecter
-            </button>
           </div>
           <div className="color-legend">
             {COLOR_LEGEND.map((l) => (
               <span key={l.color} className="color-legend-item">
-                {l.emoji} {l.label}
+                <span className={`legend-dot color-${l.color}`} /> {l.label}
               </span>
             ))}
           </div>
