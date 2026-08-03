@@ -44,18 +44,19 @@ export default function CardModal({ card, onClose }: Props) {
 
   function addLog() {
     const text = logText.trim();
-    if (!text) return;
-    dispatch({
-      type: "ADD_LOG",
-      cardId: card.id,
-      entry: {
-        id: `log-${Date.now()}`,
-        date: new Date().toISOString(),
-        author: logAuthor.trim() || "Anonyme",
-        text,
-      },
-    });
-    setLogText("");
+    if (text) {
+      dispatch({
+        type: "ADD_LOG",
+        cardId: card.id,
+        entry: {
+          id: `log-${Date.now()}`,
+          date: new Date().toISOString(),
+          author: logAuthor.trim() || "Anonyme",
+          text,
+        },
+      });
+      setLogText("");
+    }
     onClose();
   }
 
