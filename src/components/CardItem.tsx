@@ -9,34 +9,13 @@ interface Props {
   onOpen: (card: CardData) => void;
 }
 
-export default function CardItem({ card, onOpen }: Props) {
+export function CardContent({ card }: { card: CardData }) {
   const { state } = useStore();
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: card.id,
-  });
-
-  const baseTransform = CSS.Transform.toString(transform);
-  const style: React.CSSProperties = {
-    transform: isDragging
-      ? `${baseTransform ?? ""} scale(1.06) rotate(2deg)`.trim()
-      : baseTransform,
-    transition,
-    opacity: isDragging ? 0.95 : 1,
-    zIndex: isDragging ? 20 : undefined,
-  };
-
   const overdue = isOverdue(card);
   const dueToday = isToday(card);
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`sticky-card sticky-${card.color} ${isDragging ? "is-dragging" : ""}`}
-      onClick={() => onOpen(card)}
-    >
+    <>
       <div className="sticky-title">{card.title}</div>
       {siteName(state, card) && <div className="sticky-site">📍 {siteName(state, card)}</div>}
       {card.assignees.length > 0 && (
@@ -52,6 +31,30 @@ export default function CardItem({ card, onOpen }: Props) {
         {card.priority === "urgente" && <span className="sticky-priority">🔥 urgent</span>}
         {card.log.length > 0 && <span className="sticky-log-count">📝 {card.log.length}</span>}
       </div>
+    </>
+  );
+}
+
+export default function CardItem({ card, onOpen }: Props) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: card.id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`sticky-card sticky-${card.color} ${isDragging ? "sticky-ghost" : ""}`}
+      onClick={() => onOpen(card)}
+    >
+      <CardContent card={card} />
     </div>
   );
 }

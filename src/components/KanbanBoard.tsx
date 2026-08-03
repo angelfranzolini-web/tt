@@ -1,15 +1,18 @@
 import { useState } from "react";
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
   closestCorners,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import type { CardData } from "../types";
 import { useStore } from "../store";
 import ColumnView from "./ColumnView";
+import CardDragPreview from "./CardDragPreview";
 import ShareButton from "./ShareButton";
 import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
 import { buildShareLink } from "../share";
@@ -24,6 +27,7 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
   const [addingColumn, setAddingColumn] = useState(false);
   const [newColTitle, setNewColTitle] = useState("");
   const [dialog, setDialog] = useState<DialogRequest | null>(null);
+  const [activeCard, setActiveCard] = useState<CardData | null>(null);
 
   const board = state.boards.find((b) => b.id === boardId);
 
@@ -36,11 +40,16 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
     .sort((a, b) => a.order - b.order);
   const cards = state.cards.filter((c) => c.boardId === boardId);
 
+  function handleDragStart(event: DragStartEvent) {
+    setActiveCard(cards.find((c) => c.id === event.active.id) ?? null);
+  }
+
   function handleDragEnd(event: DragEndEvent) {
+    setActiveCard(null);
     const { active, over } = event;
     if (!over) return;
-    const activeCard = cards.find((c) => c.id === active.id);
-    if (!activeCard) return;
+    const draggedCard = cards.find((c) => c.id === active.id);
+    if (!draggedCard) return;
 
     const overId = String(over.id);
     let toColumnId: string;
@@ -48,20 +57,20 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
 
     if (overId.startsWith("coldrop-")) {
       toColumnId = overId.replace("coldrop-", "");
-      toIndex = cards.filter((c) => c.columnId === toColumnId && c.id !== activeCard.id).length;
+      toIndex = cards.filter((c) => c.columnId === toColumnId && c.id !== draggedCard.id).length;
     } else {
       const overCard = cards.find((c) => c.id === overId);
       if (!overCard) return;
       toColumnId = overCard.columnId;
       const siblings = cards
-        .filter((c) => c.columnId === toColumnId && c.id !== activeCard.id)
+        .filter((c) => c.columnId === toColumnId && c.id !== draggedCard.id)
         .sort((a, b) => a.order - b.order);
       toIndex = siblings.findIndex((c) => c.id === overCard.id);
       if (toIndex === -1) toIndex = siblings.length;
     }
 
-    if (toColumnId === activeCard.columnId && toIndex === activeCard.order) return;
-    dispatch({ type: "MOVE_CARD", cardId: activeCard.id, toColumnId, toIndex });
+    if (toColumnId === draggedCard.columnId && toIndex === draggedCard.order) return;
+    dispatch({ type: "MOVE_CARD", cardId: draggedCard.id, toColumnId, toIndex });
   }
 
   function addColumn() {
@@ -107,7 +116,13 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
 
   return (
     <>
-    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveCard(null)}
+    >
       <div className="board-toolbar">
         {!board?.locked && (
           <>
@@ -166,6 +181,7 @@ export default function KanbanBoard({ boardId, onOpenCard }: Props) {
           </div>
         )}
       </div>
+      <DragOverlay>{activeCard && <CardDragPreview card={activeCard} />}</DragOverlay>
     </DndContext>
       {dialog && <ConfirmDialog request={dialog} onClose={() => setDialog(null)} />}
     </>

@@ -379,8 +379,16 @@
   cursor: grabbing;
 }
 
-.sticky-card.is-dragging {
+.sticky-card.sticky-ghost {
+  opacity: 0.3;
+  box-shadow: none;
+  outline: 2px dashed rgba(30, 36, 48, 0.45);
+  outline-offset: -2px;
+}
+
+.sticky-drag-preview {
   cursor: grabbing;
+  transform: scale(1.06) rotate(2deg);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
   outline: 2px solid #1e2430;
   outline-offset: 2px;
