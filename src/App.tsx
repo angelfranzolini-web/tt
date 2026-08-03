@@ -3,12 +3,14 @@ import { StoreProvider, useStore } from "./store";
 import LoginGate from "./components/LoginGate";
 import KanbanBoard from "./components/KanbanBoard";
 import ActionTableView from "./components/ActionTableView";
+import ArchiveView from "./components/ArchiveView";
 import CardModal from "./components/CardModal";
 import SiteView from "./components/SiteView";
 import PersonView from "./components/PersonView";
 import UserView from "./components/UserView";
 import LiveShareView from "./components/LiveShareView";
 import { shareIdFromHash } from "./share";
+import { ARCHIVE_BOARD_ID } from "./shared/reducer";
 import { COLOR_LEGEND, type CardData } from "./types";
 import "./App.css";
 
@@ -147,8 +149,12 @@ function AppInner({ logout }: { logout: () => void }) {
       </header>
 
       <main className="app-main">
+        {view.type === "board" && view.boardId && view.boardId === ARCHIVE_BOARD_ID && (
+          <ArchiveView onOpenCard={(c) => setOpenCardId(c.id)} />
+        )}
         {view.type === "board" &&
           view.boardId &&
+          view.boardId !== ARCHIVE_BOARD_ID &&
           (state.boards.find((b) => b.id === view.boardId)?.viewType === "table" ? (
             <ActionTableView boardId={view.boardId} />
           ) : (

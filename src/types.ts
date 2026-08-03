@@ -33,6 +33,11 @@ export interface CardData {
   // aujourd'hui" — cleared if it's moved back out. The server sweeps cards
   // sitting here for 24h+ into the Archives board to keep a permanent trace.
   completedAt?: string;
+  // Set once, when ARCHIVE_CARD actually moves the card into Archives —
+  // boardId/columnId get overwritten to Archives at that point, so this is
+  // the only record of where it came from and exactly when it landed here.
+  archivedFrom?: string;
+  archivedAt?: string;
 }
 
 export interface ColumnData {

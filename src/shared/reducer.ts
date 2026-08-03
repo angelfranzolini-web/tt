@@ -1,5 +1,5 @@
 import type { AppState, BoardData, CardData, ColumnData, LogEntry, SiteData, UserData } from "../types";
-import { deriveUsersFromCards, detectSiteId, siteKey } from "../utils";
+import { boardName, deriveUsersFromCards, detectSiteId, siteKey } from "../utils";
 
 export type Action =
   | { type: "MOVE_CARD"; cardId: string; toColumnId: string; toIndex: number }
@@ -137,6 +137,7 @@ export function reducer(state: AppState, action: Action): AppState {
       };
     }
     case "ADD_CARD": {
+      if (action.boardId === ARCHIVE_BOARD_ID) return state; // Archives only receives cards via the automatic sweep
       const siblings = state.cards.filter((c) => c.columnId === action.columnId);
       const newCard: CardData = {
         id: `card-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -158,11 +159,19 @@ export function reducer(state: AppState, action: Action): AppState {
       const card = state.cards.find((c) => c.id === action.cardId);
       if (!card) return state;
       const siblings = state.cards.filter((c) => c.columnId === ARCHIVE_COLUMN_ID);
+      const archivedFrom = boardName(state, card.boardId);
       return {
         ...state,
         cards: state.cards.map((c) =>
           c.id === action.cardId
-            ? { ...c, boardId: ARCHIVE_BOARD_ID, columnId: ARCHIVE_COLUMN_ID, order: siblings.length }
+            ? {
+                ...c,
+                boardId: ARCHIVE_BOARD_ID,
+                columnId: ARCHIVE_COLUMN_ID,
+                order: siblings.length,
+                archivedFrom,
+                archivedAt: new Date().toISOString(),
+              }
             : c
         ),
       };
