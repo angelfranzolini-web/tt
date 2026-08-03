@@ -145,7 +145,7 @@ export default function CardModal({ card, onClose }: Props) {
               <input
                 type="checkbox"
                 checked={!card.hiddenFromShare}
-                onChange={(e) => patch({ hiddenFromShare: e.target.checked ? undefined : true })}
+                onChange={(e) => patch({ hiddenFromShare: !e.target.checked })}
               />
               Visible depuis le lien de partage
             </label>
