@@ -1272,6 +1272,23 @@ button.danger {
   color: #4b5563;
 }
 
+@keyframes copy-pulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.share-popover button.copy-btn.just-copied {
+  background: #16a34a;
+  animation: copy-pulse 0.35s ease;
+}
+
 .share-popover p {
   font-size: 11px;
   color: #6b7280;
