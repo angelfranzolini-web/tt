@@ -56,6 +56,7 @@ export default function CardModal({ card, onClose }: Props) {
       },
     });
     setLogText("");
+    onClose();
   }
 
   function handleDelete() {
