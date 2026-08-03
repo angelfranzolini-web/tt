@@ -48,7 +48,7 @@ export default function Autocomplete({
   }, []);
 
   const needle = query.trim().toLowerCase();
-  const filtered = needle ? options.filter((o) => o.label.toLowerCase().includes(needle)) : options;
+  const filtered = needle ? options.filter((o) => o.label.toLowerCase().startsWith(needle)) : options;
 
   function choose(option: AutocompleteOption) {
     onSelect(option);
