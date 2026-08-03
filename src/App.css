@@ -996,6 +996,33 @@ button.danger {
   outline: none;
 }
 
+.action-table td textarea.action-textarea {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 7px 8px;
+  font-size: 13.5px;
+  font-family: inherit;
+  background: transparent;
+  box-sizing: border-box;
+  resize: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 32px;
+  display: block;
+}
+
+.action-table td textarea.action-textarea:hover {
+  border-color: #d7dae1;
+}
+
+.action-table td textarea.action-textarea:focus {
+  border-color: #2563eb;
+  background: #fff;
+  outline: none;
+}
+
 .action-row-delete {
   width: 32px;
   text-align: center;

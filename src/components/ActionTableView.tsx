@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CardData } from "../types";
 import { useStore } from "../store";
 import ShareButton from "./ShareButton";
@@ -7,6 +7,38 @@ import { buildShareLink } from "../share";
 
 interface Props {
   boardId: string;
+}
+
+function AutoTextarea({
+  value,
+  placeholder,
+  onChange,
+}: {
+  value: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  function resize() {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }
+
+  useEffect(resize, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      className="action-textarea"
+      rows={1}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  );
 }
 
 function ActionRow({ card, onDelete }: { card: CardData; onDelete: () => void }) {
@@ -31,7 +63,7 @@ function ActionRow({ card, onDelete }: { card: CardData; onDelete: () => void })
         <input value={card.theme ?? ""} placeholder="Thème" onChange={(e) => patch({ theme: e.target.value })} />
       </td>
       <td>
-        <input value={card.title} placeholder="Action" onChange={(e) => patch({ title: e.target.value })} />
+        <AutoTextarea value={card.title} placeholder="Action" onChange={(title) => patch({ title })} />
       </td>
       <td>
         <input
