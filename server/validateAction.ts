@@ -42,10 +42,12 @@ function validCardPatch(v: unknown): boolean {
     "priority",
     "description",
     "theme",
+    "hiddenFromShare",
   ]);
   for (const key of Object.keys(v)) {
     if (!allowed.has(key)) return false;
   }
+  if (v.hiddenFromShare !== undefined && typeof v.hiddenFromShare !== "boolean") return false;
   if (v.theme !== undefined && v.theme !== null && !isStr(v.theme)) return false;
   if (v.columnId !== undefined && !isStr(v.columnId)) return false;
   if (v.title !== undefined && !isStr(v.title)) return false;

@@ -36,7 +36,7 @@ function toShared(state: AppState, card: CardData): SharedCard {
 
 export function buildSitePayload(state: AppState, siteId: string): SharePayload {
   const site = siteById(state, siteId);
-  const cards = state.cards.filter((c) => c.siteId === siteId);
+  const cards = state.cards.filter((c) => c.siteId === siteId && !c.hiddenFromShare);
   return {
     kind: "site",
     name: site?.name ?? "Site",
@@ -47,7 +47,7 @@ export function buildSitePayload(state: AppState, siteId: string): SharePayload 
 
 export function buildBoardPayload(state: AppState, boardId: string): SharePayload {
   const name = boardName(state, boardId);
-  const cards = state.cards.filter((c) => c.boardId === boardId);
+  const cards = state.cards.filter((c) => c.boardId === boardId && !c.hiddenFromShare);
   return {
     kind: "board",
     name,

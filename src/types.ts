@@ -25,6 +25,10 @@ export interface CardData {
   // d'action : Thème / Action / Qui / Début) — independent of the site
   // registry since a theme isn't necessarily a client site.
   theme?: string;
+  // When true, this ticket is excluded from live share links (board/site)
+  // even though it stays fully visible internally. Absent/false = shared
+  // normally, for backward compatibility.
+  hiddenFromShare?: boolean;
 }
 
 export interface ColumnData {

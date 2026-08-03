@@ -137,6 +137,21 @@ export default function CardModal({ card, onClose }: Props) {
           </div>
 
           <div className="modal-row">
+            <label className="checkbox-row">
+              <input
+                type="checkbox"
+                checked={!card.hiddenFromShare}
+                onChange={(e) => patch({ hiddenFromShare: e.target.checked ? undefined : true })}
+              />
+              Visible depuis le lien de partage
+            </label>
+            <span className="field-hint">
+              Décochez pour masquer cette étiquette aux personnes externes qui consultent un lien
+              partagé — elle reste visible normalement en interne.
+            </span>
+          </div>
+
+          <div className="modal-row">
             <label>Personnes assignées</label>
             <div className="assignee-list">
               {card.assignees.map((a) => (

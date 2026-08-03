@@ -621,6 +621,25 @@
   gap: 12px;
 }
 
+.modal-row label.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: #1e2430;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 .color-picker {
   display: flex;
   gap: 8px;
