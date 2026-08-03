@@ -94,6 +94,10 @@ export function validateAction(raw: unknown): Action | null {
       if (isStr(a.cardId)) return { type: "DELETE_CARD", cardId: a.cardId };
       return null;
 
+    case "ARCHIVE_CARD":
+      if (isStr(a.cardId)) return { type: "ARCHIVE_CARD", cardId: a.cardId };
+      return null;
+
     case "ADD_LOG":
       if (
         isStr(a.cardId) &&

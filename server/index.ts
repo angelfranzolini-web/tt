@@ -7,7 +7,7 @@ import rateLimit from "express-rate-limit";
 import { WebSocketServer, WebSocket } from "ws";
 import { loadState, saveState } from "./dataStore";
 import { checkPassword, issueToken, isValidToken, requireAuth } from "./auth";
-import { reducer } from "../src/shared/reducer";
+import { reducer, AUTO_COMPLETE_COLUMN_ID } from "../src/shared/reducer";
 import { validateAction } from "./validateAction";
 import { buildSitePayload, buildBoardPayload } from "../src/shared/sharePayload";
 import { loadDotEnv } from "./loadEnv";
@@ -155,6 +155,24 @@ function broadcastState() {
   });
 }
 
+// A ticket dropped into "Fait" stays there for a day (completedAt stamped by
+// the reducer) then gets swept into Archives automatically, so nobody has to
+// remember to clean it up and the history isn't lost either.
+const ARCHIVE_AFTER_MS = 24 * 60 * 60 * 1000;
+
+function sweepArchive() {
+  const now = Date.now();
+  const toArchive = state.cards.filter(
+    (c) => c.columnId === AUTO_COMPLETE_COLUMN_ID && c.completedAt && now - new Date(c.completedAt).getTime() >= ARCHIVE_AFTER_MS
+  );
+  if (toArchive.length === 0) return;
+  for (const card of toArchive) {
+    state = reducer(state, { type: "ARCHIVE_CARD", cardId: card.id });
+  }
+  saveState(state);
+  broadcastState();
+}
+
 // No Origin header at all (non-browser clients) is allowed — the real
 // protection is the token/shareId. When an Origin IS present (every browser
 // sends one for WS), it must match this host, to block a malicious page on
@@ -220,6 +238,9 @@ wss.on("connection", (ws, req) => {
     broadcastState();
   });
 });
+
+sweepArchive();
+setInterval(sweepArchive, 15 * 60 * 1000);
 
 server.listen(PORT, () => {
   console.log(`SysView server listening on port ${PORT}`);

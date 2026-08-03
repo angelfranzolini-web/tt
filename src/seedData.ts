@@ -5,6 +5,8 @@ const GENERAL = "board-general";
 const TODAY = "board-today";
 const ACTION = "board-action";
 const ACTION_COLUMN = "col-action-rows";
+const ARCHIVES = "board-archives";
+const ARCHIVES_COLUMN = "col-archives-rows";
 
 const sites: SiteData[] = [
   { id: "site-sacre-coeur", name: "Sacré-Cœur" },
@@ -27,6 +29,8 @@ const todayColumns: ColumnData[] = [
 ];
 
 const actionColumns: ColumnData[] = [{ id: ACTION_COLUMN, boardId: ACTION, title: "Actions", order: 0 }];
+
+const archiveColumns: ColumnData[] = [{ id: ARCHIVES_COLUMN, boardId: ARCHIVES, title: "Archivées", order: 0 }];
 
 function actionRow(
   partial: Partial<CardData> & Pick<CardData, "id" | "order" | "title">
@@ -64,8 +68,9 @@ export function getSeedState(): AppState {
       { id: GENERAL, name: "Tableau général", icon: "🗂️", locked: true },
       { id: TODAY, name: "À faire aujourd'hui", icon: "☀️", locked: true },
       { id: ACTION, name: "Tableau d'action", icon: "📝", locked: true, viewType: "table" },
+      { id: ARCHIVES, name: "Archives", icon: "🗄️", locked: true },
     ],
-    columns: [...generalColumns, ...todayColumns, ...actionColumns],
+    columns: [...generalColumns, ...todayColumns, ...actionColumns, ...archiveColumns],
     cards: [...actionCards],
     sites,
     users: deriveUsersFromCards(actionCards),

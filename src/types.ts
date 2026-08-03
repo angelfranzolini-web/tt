@@ -29,6 +29,10 @@ export interface CardData {
   // even though it stays fully visible internally. Absent/false = shared
   // normally, for backward compatibility.
   hiddenFromShare?: boolean;
+  // ISO timestamp set when the card enters the "Fait" column of "À faire
+  // aujourd'hui" — cleared if it's moved back out. The server sweeps cards
+  // sitting here for 24h+ into the Archives board to keep a permanent trace.
+  completedAt?: string;
 }
 
 export interface ColumnData {

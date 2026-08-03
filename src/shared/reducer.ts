@@ -20,7 +20,8 @@ export type Action =
   | { type: "RENAME_USER"; userId: string; name: string }
   | { type: "DELETE_USER"; userId: string }
   | { type: "ENSURE_SITE_SHARE"; siteId: string; shareId: string }
-  | { type: "ENSURE_BOARD_SHARE"; boardId: string; shareId: string };
+  | { type: "ENSURE_BOARD_SHARE"; boardId: string; shareId: string }
+  | { type: "ARCHIVE_CARD"; cardId: string };
 
 export interface RawStoredState {
   boards: BoardData[];
@@ -30,16 +31,19 @@ export interface RawStoredState {
   users?: UserData[];
 }
 
-const LOCKED_BOARD_IDS = new Set(["board-general", "board-today", "board-action"]);
+const LOCKED_BOARD_IDS = new Set(["board-general", "board-today", "board-action", "board-archives"]);
 
-// The "Fait" column of the "À faire aujourd'hui" board isn't a real
-// destination — dropping a ticket there marks it done and clears it from
-// the board right away, so the board stays a clean daily list instead of
-// piling up finished tasks forever.
+// The "Fait" column of the "À faire aujourd'hui" board isn't a permanent
+// resting place — a ticket dropped here stays visible for a day (see
+// completedAt below) then the server sweeps it into Archives, so the board
+// stays a clean daily list while still keeping a permanent trace.
 export const AUTO_COMPLETE_COLUMN_ID = "col-today-fait";
 
 const ACTION_BOARD_ID = "board-action";
 const ACTION_COLUMN_ID = "col-action-rows";
+
+export const ARCHIVE_BOARD_ID = "board-archives";
+export const ARCHIVE_COLUMN_ID = "col-archives-rows";
 
 // Adds the "Tableau d'action" (flat Thème/Action/Qui/Début list) to states
 // saved before it existed, so it shows up for people who already have a
@@ -54,6 +58,16 @@ function ensureActionBoard(boards: BoardData[], columns: ColumnData[]): { boards
   };
 }
 
+// Same idea for the "Archives" board that receives tickets automatically
+// archived from "Fait" (see ARCHIVE_CARD).
+function ensureArchiveBoard(boards: BoardData[], columns: ColumnData[]): { boards: BoardData[]; columns: ColumnData[] } {
+  if (boards.some((b) => b.id === ARCHIVE_BOARD_ID)) return { boards, columns };
+  return {
+    boards: [...boards, { id: ARCHIVE_BOARD_ID, name: "Archives", icon: "🗄️", locked: true }],
+    columns: [...columns, { id: ARCHIVE_COLUMN_ID, boardId: ARCHIVE_BOARD_ID, title: "Archivées", order: 0 }],
+  };
+}
+
 // Older stored states used a free-text `card.site` string instead of a
 // `siteId` referencing a registered site. Convert that data on load instead
 // of discarding it, so nobody loses tickets they'd already tagged. Also
@@ -61,7 +75,8 @@ function ensureActionBoard(boards: BoardData[], columns: ColumnData[]): { boards
 // before that flag existed, and backfills the "Tableau d'action" board.
 export function migrate(raw: RawStoredState): AppState {
   const lockedBoards = raw.boards.map((b) => (LOCKED_BOARD_IDS.has(b.id) ? { ...b, locked: true } : b));
-  const { boards, columns } = ensureActionBoard(lockedBoards, raw.columns);
+  const withAction = ensureActionBoard(lockedBoards, raw.columns);
+  const { boards, columns } = ensureArchiveBoard(withAction.boards, withAction.columns);
 
   let sites: SiteData[];
   let cards: CardData[];
@@ -94,27 +109,33 @@ export function reducer(state: AppState, action: Action): AppState {
     case "MOVE_CARD": {
       const moving = state.cards.find((c) => c.id === action.cardId);
       if (!moving) return state;
-      if (action.toColumnId === AUTO_COMPLETE_COLUMN_ID) {
-        return { ...state, cards: state.cards.filter((c) => c.id !== action.cardId) };
-      }
+      const enteringFait = action.toColumnId === AUTO_COMPLETE_COLUMN_ID && moving.columnId !== AUTO_COMPLETE_COLUMN_ID;
+      const leavingFait = moving.columnId === AUTO_COMPLETE_COLUMN_ID && action.toColumnId !== AUTO_COMPLETE_COLUMN_ID;
+      const completedAt = enteringFait ? new Date().toISOString() : leavingFait ? undefined : moving.completedAt;
       const withoutMoving = state.cards.filter((c) => c.id !== action.cardId);
       const destSiblings = withoutMoving
         .filter((c) => c.columnId === action.toColumnId)
         .sort((a, b) => a.order - b.order);
       const clampedIndex = Math.max(0, Math.min(action.toIndex, destSiblings.length));
-      destSiblings.splice(clampedIndex, 0, { ...moving, columnId: action.toColumnId });
+      destSiblings.splice(clampedIndex, 0, { ...moving, columnId: action.toColumnId, completedAt });
       const reordered = destSiblings.map((c, i) => ({ ...c, order: i }));
       const otherCards = withoutMoving.filter((c) => c.columnId !== action.toColumnId);
       return { ...state, cards: [...otherCards, ...reordered] };
     }
-    case "UPDATE_CARD":
-      if (action.patch.columnId === AUTO_COMPLETE_COLUMN_ID) {
-        return { ...state, cards: state.cards.filter((c) => c.id !== action.cardId) };
+    case "UPDATE_CARD": {
+      const current = state.cards.find((c) => c.id === action.cardId);
+      let patch = action.patch;
+      if (current && patch.columnId !== undefined) {
+        const enteringFait = patch.columnId === AUTO_COMPLETE_COLUMN_ID && current.columnId !== AUTO_COMPLETE_COLUMN_ID;
+        const leavingFait = current.columnId === AUTO_COMPLETE_COLUMN_ID && patch.columnId !== AUTO_COMPLETE_COLUMN_ID;
+        if (enteringFait) patch = { ...patch, completedAt: new Date().toISOString() };
+        else if (leavingFait) patch = { ...patch, completedAt: undefined };
       }
       return {
         ...state,
-        cards: state.cards.map((c) => (c.id === action.cardId ? { ...c, ...action.patch } : c)),
+        cards: state.cards.map((c) => (c.id === action.cardId ? { ...c, ...patch } : c)),
       };
+    }
     case "ADD_CARD": {
       const siblings = state.cards.filter((c) => c.columnId === action.columnId);
       const newCard: CardData = {
@@ -133,6 +154,19 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case "DELETE_CARD":
       return { ...state, cards: state.cards.filter((c) => c.id !== action.cardId) };
+    case "ARCHIVE_CARD": {
+      const card = state.cards.find((c) => c.id === action.cardId);
+      if (!card) return state;
+      const siblings = state.cards.filter((c) => c.columnId === ARCHIVE_COLUMN_ID);
+      return {
+        ...state,
+        cards: state.cards.map((c) =>
+          c.id === action.cardId
+            ? { ...c, boardId: ARCHIVE_BOARD_ID, columnId: ARCHIVE_COLUMN_ID, order: siblings.length }
+            : c
+        ),
+      };
+    }
     case "ADD_LOG":
       return {
         ...state,
