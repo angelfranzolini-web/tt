@@ -15,10 +15,14 @@ export default function CardItem({ card, onOpen }: Props) {
     id: card.id,
   });
 
+  const baseTransform = CSS.Transform.toString(transform);
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging
+      ? `${baseTransform ?? ""} scale(1.06) rotate(2deg)`.trim()
+      : baseTransform,
     transition,
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.95 : 1,
+    zIndex: isDragging ? 20 : undefined,
   };
 
   const overdue = isOverdue(card);
@@ -30,7 +34,7 @@ export default function CardItem({ card, onOpen }: Props) {
       style={style}
       {...attributes}
       {...listeners}
-      className={`sticky-card sticky-${card.color}`}
+      className={`sticky-card sticky-${card.color} ${isDragging ? "is-dragging" : ""}`}
       onClick={() => onOpen(card)}
     >
       <div className="sticky-title">{card.title}</div>
