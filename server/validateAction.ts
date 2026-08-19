@@ -12,6 +12,7 @@ const MAX_ARRAY = 200; // assignees, columns lists
 
 const CARD_COLORS = new Set<CardColor>(["red", "orange", "yellow", "green", "blue"]);
 const PRIORITIES = new Set(["faible", "moyenne", "urgente"]);
+const ACTION_STATUSES = new Set(["a_faire", "en_cours", "fait"]);
 
 function isStr(v: unknown, max = MAX_SHORT): v is string {
   return typeof v === "string" && v.length <= max;
@@ -42,6 +43,7 @@ function validCardPatch(v: unknown): boolean {
     "priority",
     "description",
     "theme",
+    "status",
     "hiddenFromShare",
   ]);
   for (const key of Object.keys(v)) {
@@ -49,6 +51,7 @@ function validCardPatch(v: unknown): boolean {
   }
   if (v.hiddenFromShare !== undefined && typeof v.hiddenFromShare !== "boolean") return false;
   if (v.theme !== undefined && v.theme !== null && !isStr(v.theme)) return false;
+  if (v.status !== undefined && v.status !== null && !ACTION_STATUSES.has(v.status as string)) return false;
   if (v.columnId !== undefined && !isStr(v.columnId)) return false;
   if (v.title !== undefined && !isStr(v.title)) return false;
   if (v.color !== undefined && !CARD_COLORS.has(v.color as CardColor)) return false;

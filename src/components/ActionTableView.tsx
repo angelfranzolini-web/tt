@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { CardData } from "../types";
+import { ACTION_STATUSES } from "../types";
 import { useStore } from "../store";
 import ShareButton from "./ShareButton";
 import ConfirmDialog, { type DialogRequest } from "./ConfirmDialog";
 import { buildShareLink } from "../share";
+import { isOverdue, isToday } from "../utils";
 
 interface Props {
   boardId: string;
 }
+
+type DueFilter = "all" | "today" | "overdue" | "none";
 
 function AutoTextarea({
   value,
@@ -81,6 +85,19 @@ function ActionRow({ card, onDelete }: { card: CardData; onDelete: () => void })
           onChange={(e) => patch({ dueDate: e.target.value || undefined })}
         />
       </td>
+      <td>
+        <select
+          className={`action-status action-status-${card.status ?? "a_faire"}`}
+          value={card.status ?? "a_faire"}
+          onChange={(e) => patch({ status: e.target.value as CardData["status"] })}
+        >
+          {ACTION_STATUSES.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </td>
       <td className="action-row-delete">
         <button className="column-icon-btn" title="Supprimer cette ligne" onClick={onDelete}>
           🗑
@@ -93,10 +110,48 @@ function ActionRow({ card, onDelete }: { card: CardData; onDelete: () => void })
 export default function ActionTableView({ boardId }: Props) {
   const { state, dispatch } = useStore();
   const [dialog, setDialog] = useState<DialogRequest | null>(null);
+  const [themeFilter, setThemeFilter] = useState("all");
+  const [actionSearch, setActionSearch] = useState("");
+  const [quiFilter, setQuiFilter] = useState("all");
+  const [dueFilter, setDueFilter] = useState<DueFilter>("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const board = state.boards.find((b) => b.id === boardId);
   const column = state.columns.find((c) => c.boardId === boardId);
-  const rows = state.cards.filter((c) => c.boardId === boardId).sort((a, b) => a.order - b.order);
+  const allRows = state.cards.filter((c) => c.boardId === boardId).sort((a, b) => a.order - b.order);
+
+  const themes = [...new Set(allRows.map((c) => c.theme).filter((t): t is string => !!t))].sort((a, b) =>
+    a.localeCompare(b, "fr")
+  );
+  const people = [...new Set(allRows.flatMap((c) => c.assignees))].sort((a, b) => a.localeCompare(b, "fr"));
+
+  const search = actionSearch.trim().toLowerCase();
+  const rows = allRows.filter((card) => {
+    if (themeFilter !== "all" && card.theme !== themeFilter) return false;
+    if (search && !card.title.toLowerCase().includes(search)) return false;
+    if (quiFilter !== "all" && !card.assignees.includes(quiFilter)) return false;
+    if (dueFilter === "today" && !isToday(card)) return false;
+    if (dueFilter === "overdue" && !isOverdue(card)) return false;
+    if (dueFilter === "none" && card.dueDate) return false;
+    if (statusFilter !== "all" && (card.status ?? "a_faire") !== statusFilter) return false;
+    return true;
+  });
+
+  const activeFilterCount = [
+    themeFilter !== "all",
+    actionSearch.trim() !== "",
+    quiFilter !== "all",
+    dueFilter !== "all",
+    statusFilter !== "all",
+  ].filter(Boolean).length;
+
+  function resetFilters() {
+    setThemeFilter("all");
+    setActionSearch("");
+    setQuiFilter("all");
+    setDueFilter("all");
+    setStatusFilter("all");
+  }
 
   function addRow() {
     if (!column) return;
@@ -122,6 +177,49 @@ export default function ActionTableView({ boardId }: Props) {
           buildLink={() => buildShareLink(board!.shareId!)}
         />
       </div>
+      <div className="filter-bar">
+        <select value={themeFilter} onChange={(e) => setThemeFilter(e.target.value)}>
+          <option value="all">Tous les thèmes</option>
+          {themes.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+        <input
+          className="filter-search"
+          value={actionSearch}
+          onChange={(e) => setActionSearch(e.target.value)}
+          placeholder="Rechercher une action…"
+        />
+        <select value={quiFilter} onChange={(e) => setQuiFilter(e.target.value)}>
+          <option value="all">Toutes les personnes</option>
+          {people.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
+        <select value={dueFilter} onChange={(e) => setDueFilter(e.target.value as DueFilter)}>
+          <option value="all">Toutes les échéances</option>
+          <option value="today">Début aujourd'hui</option>
+          <option value="overdue">En retard</option>
+          <option value="none">Sans date</option>
+        </select>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <option value="all">Tous les statuts</option>
+          {ACTION_STATUSES.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+        {activeFilterCount > 0 && (
+          <button className="filter-clear" onClick={resetFilters}>
+            ✕ Réinitialiser ({activeFilterCount})
+          </button>
+        )}
+      </div>
       <div className="action-table-wrap">
         <table className="action-table">
           <thead>
@@ -130,6 +228,7 @@ export default function ActionTableView({ boardId }: Props) {
               <th>Action</th>
               <th>Qui</th>
               <th>Début</th>
+              <th>Statut</th>
               <th></th>
             </tr>
           </thead>
@@ -139,7 +238,11 @@ export default function ActionTableView({ boardId }: Props) {
             ))}
           </tbody>
         </table>
-        {rows.length === 0 && <p className="agg-empty-state">Aucune ligne pour le moment.</p>}
+        {rows.length === 0 && (
+          <p className="agg-empty-state">
+            {allRows.length === 0 ? "Aucune ligne pour le moment." : "Aucun résultat pour ces filtres."}
+          </p>
+        )}
         <button className="add-card-trigger action-add-row" onClick={addRow}>
           + Ajouter une ligne
         </button>

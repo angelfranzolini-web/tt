@@ -25,6 +25,9 @@ export interface CardData {
   // d'action : Thème / Action / Qui / Début) — independent of the site
   // registry since a theme isn't necessarily a client site.
   theme?: string;
+  // Status of the row in a "table" board (ex. le tableau d'action), shown
+  // as its own "Statut" column. Absent = "À faire".
+  status?: "a_faire" | "en_cours" | "fait";
   // When true, this ticket is excluded from live share links (board/site)
   // even though it stays fully visible internally. Absent/false = shared
   // normally, for backward compatibility.
@@ -91,6 +94,14 @@ export interface AppState {
   sites: SiteData[];
   users: UserData[];
 }
+
+export type ActionStatus = NonNullable<CardData["status"]>;
+
+export const ACTION_STATUSES: { value: ActionStatus; label: string }[] = [
+  { value: "a_faire", label: "À faire" },
+  { value: "en_cours", label: "En cours" },
+  { value: "fait", label: "Fait" },
+];
 
 export const CARD_COLORS: { value: CardColor; label: string }[] = [
   { value: "red", label: "Rouge — Urgent" },
